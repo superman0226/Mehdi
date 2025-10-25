@@ -95,7 +95,7 @@
     <!-- 外部库：用于 Markdown 格式化 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.12/marked.min.js"></script>
 
-    <!-- 引入文章数据 (FIX: 修复了缺失的 script 标签，确保 mockArticles 变量被加载) -->
+    <!-- 引入文章数据 (FIXED: 修复了缺失的 script 标签) -->
     <script src="articles.js"></script>
 
     <script>
@@ -126,6 +126,12 @@
          * 初始化或重置应用状态
          */
         function initializeApp() {
+            // 检查 mockArticles 是否可用 (现在使用 var 声明，应该可以在这里访问)
+            if (typeof mockArticles === 'undefined') {
+                 showInitError();
+                 return;
+            }
+
             // 清空UI和历史记录
             chatContainer.innerHTML = '';
             chatHistory = [];
@@ -140,6 +146,21 @@
             // 恢复按钮状态
             sendButton.disabled = false;
         }
+
+        /**
+         * 显示初始化错误的函数（如果数据未加载）
+         */
+        function showInitError() {
+            chatContainer.innerHTML = `
+                <div class="text-center text-red-500 p-4 bg-red-50 rounded-lg">
+                    <p class="font-bold mb-2">系统初始化失败！</p>
+                    <p class="text-sm">错误：未找到 <strong>articles.js</strong> 文件中的 mockArticles 数据。</p>
+                    <p class="text-xs mt-1">请确保 'articles.js' 文件与 'index.html' 在同一目录，且 'mockArticles' 变量使用 'var' 声明。</p>
+                </div>
+            `;
+            sendButton.disabled = true;
+        }
+
 
         /**
          * 根据当前模式返回文章链接
@@ -181,6 +202,9 @@
         function toggleLinkMode() {
             linkMode = linkMode === 'zh' ? 'en' : 'zh';
             updateLinkModeUI();
+            // 在切换模式后，清除旧的推荐卡片，防止误解
+            const recCards = document.querySelectorAll('.recommendation-card');
+            recCards.forEach(card => card.remove());
         }
 
         /**
@@ -199,7 +223,7 @@
             // 如果有推荐，添加推荐卡片
             if (recommendation) {
                 const recDiv = document.createElement('div');
-                recDiv.className = 'mt-3 pt-3 border-t border-gray-300';
+                recDiv.className = 'mt-3 pt-3 border-t border-gray-300 recommendation-card';
                 
                 // 获取处理后的链接
                 const processedUrl = getProcessedUrl(recommendation.url);
@@ -259,7 +283,7 @@
                 modal.id = modalId;
                 modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none';
                 modal.innerHTML = `
-                    <div class="bg-white p-6 rounded-lg shadow-2xl transform scale-95 transition-transform duration-300">
+                    <div class="bg-white p-6 rounded-xl shadow-2xl transform scale-95 transition-transform duration-300">
                         <p id="modalMessage" class="text-lg font-semibold text-gray-800 mb-4"></p>
                         <button onclick="document.getElementById('${modalId}').classList.remove('opacity-100', 'pointer-events-auto'); document.getElementById('${modalId}').classList.add('opacity-0', 'pointer-events-none');" class="w-full py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition duration-150">
                             确定
@@ -293,9 +317,16 @@
             chatHistory.push({ role: "user", parts: [{ text: text }] });
             
             // 3. 构造系统指令 (System Prompt) - 注入人设和文章库
-            const articleList = mockArticles.map(a => 
-                `ID: ${a.id}, 标题: ${a.title}, 侧重点/摘要: ${a.summary}`
-            ).join('\n');
+            // 使用 try/catch 确保即使 mockArticles 未定义，程序也不会完全崩溃
+            let articleList = '';
+            if (typeof mockArticles !== 'undefined') {
+                articleList = mockArticles.map(a => 
+                    `ID: ${a.id}, 标题: ${a.title}, 侧重点/摘要: ${a.summary}`
+                ).join('\n');
+            } else {
+                 articleList = '文章列表不可用，请勿推荐。';
+            }
+
 
             const systemPrompt = `
                 你是一个幽默、亲切、爱互动的公众号助理，名字叫“小小强”。你的主要任务是：
@@ -380,13 +411,7 @@
 
             } catch (error) {
                 console.error("Critical error in sendMessage:", error);
-                // 如果是 mockArticles is not defined，会在这里被捕获
-                if (typeof mockArticles === 'undefined') {
-                    // This error path should now be hit on DOMContentLoaded, not here, but kept as a safeguard.
-                    responseText = "抱歉，系统暂时出了点小问题。详细错误: mockArticles is not defined。请检查您的 articles.js 文件是否已正确加载。";
-                } else {
-                    responseText = `Api错误，请查看控制台。${error.message}`;
-                }
+                responseText = `Api错误，请查看控制台。${error.message}`;
             }
             
             // 9. 最终显示回复
@@ -402,29 +427,87 @@
                 sendMessage();
             }
         });
-        resetButton.addEventListener('click', () => {
-            if (confirm("确定要重置对话吗？重置后小强将忘记所有之前的聊天内容。")) {
-                initializeApp();
-            }
-        });
 
         // 切换链接模式
         toggleLinkModeButton.addEventListener('click', toggleLinkMode);
+        
+        resetButton.addEventListener('click', () => {
+            // 使用自定义模态框代替 confirm()
+            showConfirmModal("确定要重置对话吗？重置后小强将忘记所有之前的聊天内容。", initializeApp);
+        });
+
+        /**
+         * 显示确认对话框的自定义模态框
+         * @param {string} message 
+         * @param {Function} onConfirmCallback 
+         */
+        function showConfirmModal(message, onConfirmCallback) {
+            const modalId = 'confirmModal';
+            let modal = document.getElementById(modalId);
+            
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = modalId;
+                modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none';
+                modal.innerHTML = `
+                    <div class="bg-white p-6 rounded-lg shadow-2xl w-80 transform scale-95 transition-transform duration-300">
+                        <p id="confirmModalMessage" class="text-lg font-semibold text-gray-800 mb-6"></p>
+                        <div class="flex justify-end space-x-3">
+                            <button id="confirmCancelBtn" class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition duration-150">
+                                取消
+                            </button>
+                            <button id="confirmOkBtn" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-150">
+                                确定重置
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+
+            document.getElementById('confirmModalMessage').textContent = message;
+
+            const closeModal = () => {
+                modal.classList.remove('opacity-100', 'pointer-events-auto');
+                modal.classList.add('opacity-0', 'pointer-events-none');
+            };
+
+            // 移除旧监听器，防止重复执行
+            const okBtn = document.getElementById('confirmOkBtn');
+            const cancelBtn = document.getElementById('confirmCancelBtn');
+
+            const newOkListener = () => {
+                closeModal();
+                onConfirmCallback();
+                okBtn.removeEventListener('click', newOkListener);
+                cancelBtn.removeEventListener('click', newCancelListener);
+            };
+
+            const newCancelListener = () => {
+                closeModal();
+                cancelBtn.removeEventListener('click', newCancelListener);
+                okBtn.removeEventListener('click', newOkListener);
+            };
+
+            okBtn.addEventListener('click', newOkListener);
+            cancelBtn.addEventListener('click', newCancelListener);
+
+
+            setTimeout(() => {
+                modal.classList.add('opacity-100', 'pointer-events-auto');
+            }, 10);
+        }
 
         // --- 5. Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
             // 确保在 DOM 加载完成后，并且 mockArticles（从 articles.js）被加载后再运行
             if (typeof mockArticles !== 'undefined') {
                 initializeApp();
-                sendButton.disabled = false;
             } else {
-                // 如果 mockArticles 仍未定义，显示错误提示
-                chatContainer.innerHTML = '<div class="text-center text-red-500 p-4">错误：未找到 articles.js 文件中的 mockArticles 数据。请检查文件路径和加载顺序。</div>';
-                sendButton.disabled = true;
+                showInitError();
             }
         });
     </script>
     
 </body>
 </html>
-

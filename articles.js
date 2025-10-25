@@ -1,7 +1,8 @@
 // 这个文件定义了您的公众号文章库，供AI助理进行推荐。
 // 关键：请根据您的实际文章URL更新 'url' 字段。
 
-const mockArticles = [
+// 修正：使用 'var' 确保 mockArticles 成为全局变量，解决加载问题。
+var mockArticles = [
     {
         id: "A001",
         title: "1776年，地球到底发生了什么？",

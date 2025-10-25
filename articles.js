@@ -61,7 +61,7 @@ var mockArticles = [
         id: "A010",
         title: "遇之时一人 念则是一生",
         summary: "本文用西游记的故事，讲述养老现金流规划的实际用途。绝大多数的人都会面临老去、长寿，如果没有提前规划好养老现金流，老年生活就会出现危机。即使你想到了规划，但如果没有可持续的长期主义，也可能面临被骗、被啃老的风险。",
-        url: "https://yourwechat.com/article/A010"
+        url: "https://mp.weixin.qq.com/s?__biz=MjM5MTAyMjIxNg==&mid=2650403557&idx=1&sn=16da9d04852e4d27c794d514d89d3323&chksm=beb6bf0289c13614cddcf7a8a0b1890860470588f7f6d5057d49787c8d3e05d618536e1f6bc1&token=302031980&lang=zh_CN#rd"
     },
     {
         id: "A011",
@@ -70,5 +70,6 @@ var mockArticles = [
         url: "https://mp.weixin.qq.com/s?__biz=MjM5MTAyMjIxNg==&mid=2650407729&idx=1&sn=256c2e9f4f32e6b0916fdc8ddba563c6&chksm=beb54ed689c2c7c00e2cdad2e43bffde777b8c750089acd2d6c282a5b70b0970cdf7fd7f4eee&token=302031980&lang=zh_CN#rd"
     },
 ];
+
 
 // ⚠️ 注意：mockArticles 必须被定义为全局变量，以便 index.html 中的脚本可以访问。

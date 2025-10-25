@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI对话文章推荐系统</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Use Inter font -->
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f7f9fb; }
+        .loading-spinner { border-top-color: #4f46e5; -webkit-animation: spin 1s ease-in-out infinite; animation: spin 1s ease-in-out infinite; }
+        @-webkit-keyframes spin { 0% { -webkit-transform: rotate(0deg); } 100% { -webkit-transform: rotate(360deg); } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Custom chat scrollbar for aesthetics */
+        #chat-history::-webkit-scrollbar { width: 6px; }
+        #chat-history::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        #chat-history::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+    <!-- 引入外部文章数据文件 -->
+    <script src="./articles.js"></script>
+</head>
+<body class="p-4 flex flex-col items-center min-h-screen">
+
+    <div id="app" class="w-full max-w-lg bg-white rounded-xl shadow-2xl flex flex-col h-[85vh] md:h-[90vh]">
+
+        <!-- Header -->
+        <header class="p-4 border-b border-gray-200 bg-indigo-600 text-white rounded-t-xl">
+            <h1 class="text-xl font-bold text-center">🤖 公众号 AI 助理</h1>
+            <p class="text-sm text-center opacity-80">先聊聊，再推荐文章 (运营者工具)</p>
+        </header>
+
+        <!-- Chat History -->
+        <div id="chat-history" class="flex-grow p-4 space-y-4 overflow-y-auto">
+            <!-- Initial Message -->
+            <div class="flex justify-start">
+                <div class="bg-indigo-100 text-gray-800 p-3 rounded-lg max-w-[80%] shadow-md">
+                    <p class="font-semibold text-indigo-700">助理小智</p>
+                    <p>您好！我是您公众号的智能助理，请问有什么可以帮助您的呢？比如您想了解“如何制作咖啡”，或者“最新的行业趋势”？</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendation Card (Hidden by default) -->
+        <div id="recommendation-card" class="hidden p-4 bg-green-50 border-t-4 border-green-400">
+            <p class="text-green-800 font-bold mb-2">🎉 推荐文章 (已锁定):</p>
+            <div class="bg-white p-3 rounded-lg shadow-inner flex flex-col space-y-1">
+                <p class="text-sm font-medium text-gray-800 truncate">
+                    标题: <span id="recommended-title" class="text-indigo-600 font-bold"></span>
+                </p>
+                <p class="text-xs text-gray-500">
+                    ID: <span id="recommended-id" class="font-mono bg-green-100 px-1 rounded text-green-700"></span>
+                </p>
+            </div>
+            <p id="recommendation-reasoning" class="text-xs text-gray-600 mt-2 italic"></p>
+        </div>
+        
+        <!-- Input Area and Loading Indicator -->
+        <div class="p-4 border-t border-gray-200 bg-white flex items-center space-x-2">
+            <input 
+                id="user-input" 
+                type="text" 
+                placeholder="在此输入读者的问题，与助理进行对话..."
+                class="flex-grow p-3 border border-gray-300 rounded-full focus:ring-indigo-500 focus:border-indigo-500 shadow-inner"
+                onkeydown="if(event.key === 'Enter') sendMessage()"
+            />
+            <button id="send-button" onclick="sendMessage()"
+                    class="p-3 bg-indigo-600 text-white rounded-full w-12 h-12 flex items-center justify-center hover:bg-indigo-700 transition duration-150 disabled:bg-gray-400">
+                <svg id="send-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                    <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
+                </svg>
+                <div id="loading-indicator" class="hidden loading-spinner w-6 h-6 border-4 border-t-transparent rounded-full"></div>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 确保 mockArticles 已经被 articles.js 引入
+        if (typeof mockArticles === 'undefined' || !Array.isArray(mockArticles)) {
+            console.error("Error: mockArticles array not found. Please ensure articles.js is loaded correctly.");
+        }
+
+        // --- 1. State Variables ---
+        const apiKey = ""; 
+        const modelName = 'gemini-2.5-flash-preview-09-2025';
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+        
+        let chatHistory = []; // Stores the history of the conversation
+        let isRecommendationMade = false;
+        
+        // --- 2. DOM Elements ---
+        const chatHistoryDiv = document.getElementById('chat-history');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const sendIcon = document.getElementById('send-icon');
+        const recommendationCard = document.getElementById('recommendation-card');
+        const recommendedIdSpan = document.getElementById('recommended-id');
+        const recommendedTitleSpan = document.getElementById('recommended-title');
+        const recommendationReasoningP = document.getElementById('recommendation-reasoning');
+
+        // --- 3. UI Helper Functions ---
+
+        /** Updates the loading state of the button. */
+        function setLoading(isLoading) {
+            sendButton.disabled = isLoading || isRecommendationMade;
+            if (isLoading) {
+                sendIcon.classList.add('hidden');
+                loadingIndicator.classList.remove('hidden');
+            } else {
+                sendIcon.classList.remove('hidden');
+                loadingIndicator.classList.add('hidden');
+            }
+        }
+
+        /** Adds a new message to the chat history UI. */
+        function displayMessage(role, text) {
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+
+            const messageBubble = document.createElement('div');
+            messageBubble.className = `p-3 rounded-lg max-w-[80%] shadow-md ${
+                role === 'user' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-gray-800'
+            }`;
+
+            if (role === 'assistant') {
+                const assistantName = document.createElement('p');
+                assistantName.className = 'font-semibold text-indigo-700 mb-1';
+                assistantName.textContent = "助理小智";
+                messageBubble.appendChild(assistantName);
+            }
+            
+            const messageText = document.createElement('p');
+            messageText.innerHTML = text.replace(/\n/g, '<br>'); // Handle new lines
+            messageBubble.appendChild(messageText);
+            
+            messageWrapper.appendChild(messageBubble);
+            chatHistoryDiv.appendChild(messageWrapper);
+            
+            // Scroll to the bottom
+            chatHistoryDiv.scrollTop = chatHistoryDiv.scrollHeight;
+        }
+
+        /** Displays the final article recommendation card. */
+        function displayRecommendation(recommendation) {
+            const article = mockArticles.find(a => a.id === recommendation.recommended_id);
+            if (article) {
+                recommendedIdSpan.textContent = article.id;
+                recommendedTitleSpan.textContent = article.title;
+                recommendationReasoningP.textContent = `匹配依据: ${recommendation.reasoning}`;
+                recommendationCard.classList.remove('hidden');
+                isRecommendationMade = true;
+                // Disable input after recommendation
+                userInput.disabled = true;
+                sendButton.disabled = true;
+            } else {
+                displayMessage('assistant', '抱歉，我找到了一个匹配的文章ID，但它不在我的文章库中。');
+            }
+        }
+
+
+        // --- 4. Main Chat Logic ---
+
+        async function sendMessage() {
+            const userText = userInput.value.trim();
+            if (!userText || isRecommendationMade) return;
+
+            // 1. Add user message to history and UI
+            chatHistory.push({ role: 'user', parts: [{ text: userText }] });
+            displayMessage('user', userText);
+            userInput.value = ''; // Clear input field
+            setLoading(true);
+
+            try {
+                // Prepare context for the model
+                const articlesList = mockArticles
+                    .map(a => `ID: ${a.id}, Title: ${a.title}, Summary: ${a.summary}`)
+                    .join('\n---\n');
+
+                const systemPrompt = `你是一个友好、亲切、知识渊博的公众号助理“助理小智”。你的首要目标是与用户进行自然、有温度的对话，增加亲近感。
+
+请严格遵守以下规则：
+1. **回复风格：** 使用口语化、亲切的中文进行回复（像朋友聊天一样）。
+2. **对话模式（action: "continue_chat"）：** 如果用户只是在聊天、提问或澄清意图，请生成一个友好的回复，并将 action 设置为 "continue_chat"。
+3. **推荐模式（action: "recommend_article"）：** 只有当你根据当前对话和历史记录，**确定**用户需要一篇具体的文章来解决问题时，才将 action 设置为 "recommend_article"。此时，你必须从提供的文章列表中选择最匹配的文章ID，并给出推荐理由。
+4. **文章列表 (ID, 标题, 摘要):**
+---
+${articlesList}
+---
+5. **JSON输出：** 你的输出必须是一个JSON对象，包含以下所有字段。
+
+请根据最新的聊天记录和历史，决定是继续聊天还是推荐文章。`;
+
+                // JSON Schema for structured output
+                const responseSchema = {
+                    type: "OBJECT",
+                    properties: {
+                        "response_text": { "type": "STRING", "description": "对用户消息的中文回复（亲切的聊天内容）。" },
+                        "action": { "type": "STRING", "description": "决定下一步操作，必须是 'continue_chat' 或 'recommend_article'。" },
+                        "recommended_id": { "type": "STRING", "description": "如果 action 是 recommend_article，则为最匹配文章的ID，例如 'A006'。" },
+                        "reasoning": { "type": "STRING", "description": "如果 action 是 recommend_article，则为推荐该文章的简短理由 (中文)。" }
+                    },
+                    required: ["response_text", "action"],
+                    propertyOrdering: ["response_text", "action", "recommended_id", "reasoning"]
+                };
+
+                const payload = {
+                    contents: chatHistory, // Send full chat history for context
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: responseSchema
+                    }
+                };
+                
+                // Fetch with retry logic (simplified)
+                const maxRetries = 3;
+                let response = null;
+                for (let i = 0; i < maxRetries; i++) {
+                    try {
+                        response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        if (response.ok) break;
+                    } catch (e) {
+                        if (i === maxRetries - 1) throw new Error("API连接失败");
+                    }
+                    if (i < maxRetries - 1) {
+                        await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+                    }
+                }
+
+                if (!response || !response.ok) {
+                    throw new Error(`API请求失败，状态码: ${response ? response.status : '网络错误'}`);
+                }
+
+                const result = await response.json();
+                const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (!jsonText) {
+                    throw new Error("API返回内容为空或格式不正确。");
+                }
+
+                const parsedJson = JSON.parse(jsonText);
+                
+                // 2. Process Assistant's Response
+                const assistantResponseText = parsedJson.response_text || "我还在学习中，请您稍等一下哦。";
+                
+                // Add assistant response to history and UI
+                chatHistory.push({ role: 'assistant', parts: [{ text: assistantResponseText }] });
+                displayMessage('assistant', assistantResponseText);
+
+                // 3. Check for recommendation action
+                if (parsedJson.action === "recommend_article") {
+                    displayRecommendation(parsedJson);
+                }
+
+            } catch (error) {
+                console.error("处理消息时发生错误:", error);
+                displayMessage('assistant', `抱歉，系统暂时出了点小问题，请稍后再试。错误信息: ${error.message}`);
+            } finally {
+                setLoading(false);
+            }
+        }
+    </script>
+</body>
+</html>

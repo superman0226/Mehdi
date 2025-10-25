@@ -120,14 +120,16 @@
 
         function displayMessage(role, text) {
             const messageWrapper = document.createElement('div');
-            messageWrapper.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+            // Check if the role is 'user' or 'model' (which represents the assistant in API history)
+            const isUser = role === 'user';
+            messageWrapper.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
 
             const messageBubble = document.createElement('div');
             messageBubble.className = `p-3 rounded-lg max-w-[80%] shadow-md ${
-                role === 'user' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-gray-800'
+                isUser ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-gray-800'
             }`;
 
-            if (role === 'assistant') {
+            if (!isUser) { // Display assistant name for 'model' role messages
                 const assistantName = document.createElement('p');
                 assistantName.className = 'font-semibold text-indigo-700 mb-1';
                 assistantName.textContent = "助理小智";
@@ -154,7 +156,7 @@
                 isRecommendationMade = true;
                 setLoading(false); // Re-set loading state to apply disabled styles
             } else {
-                displayMessage('assistant', '抱歉，我找到了一个匹配的文章ID，但它不在我的文章库中。');
+                displayMessage('model', '抱歉，我找到了一个匹配的文章ID，但它不在我的文章库中。');
                 isRecommendationMade = true; // Still end the conversation flow
                 setLoading(false);
             }
@@ -170,8 +172,8 @@
             sendButton.disabled = false;
             userInput.value = '';
             
-            // Add initial welcome message
-            displayMessage('assistant', '您好！我是您公众号的智能助理，请问有什么可以帮助您的呢？比如您想了解“如何制作咖啡”，或者“最新的行业趋势”？');
+            // Add initial welcome message using the correct 'model' role
+            displayMessage('model', '您好！我是您公众号的智能助理，请问有什么可以帮助您的呢？比如您想了解“如何制作咖啡”，或者“最新的行业趋势”？');
         }
 
         // --- 4. Main Chat Logic ---
@@ -272,9 +274,9 @@ ${articlesList}
                 // 2. Process Assistant's Response
                 const assistantResponseText = parsedJson.response_text || "我还在学习中，请您稍等一下哦。";
                 
-                // Add assistant response to history and UI
-                chatHistory.push({ role: 'assistant', parts: [{ text: assistantResponseText }] });
-                displayMessage('assistant', assistantResponseText);
+                // Add assistant response to history using the REQUIRED 'model' role
+                chatHistory.push({ role: 'model', parts: [{ text: assistantResponseText }] });
+                displayMessage('model', assistantResponseText); // Display using 'model' role
 
                 // 3. Check for recommendation action
                 if (parsedJson.action === "recommend_article") {
@@ -284,7 +286,7 @@ ${articlesList}
             } catch (error) {
                 console.error("处理消息时发生错误:", error);
                 // Display the specific error message on the UI
-                displayMessage('assistant', `抱歉，系统暂时出了点小问题。详细错误: ${error.message}`);
+                displayMessage('model', `抱歉，系统暂时出了点小问题。详细错误: ${error.message}`);
             } finally {
                 setLoading(false);
             }

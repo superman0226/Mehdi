@@ -91,6 +91,13 @@
     </div>
 
     <!-- 应用程序逻辑 -->
+    
+    <!-- 外部库：用于 Markdown 格式化 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.12/marked.min.js"></script>
+
+    <!-- 引入文章数据 (FIX: 修复了缺失的 script 标签，确保 mockArticles 变量被加载) -->
+    <script src="articles.js"></script>
+
     <script>
         // --- 1. State Variables ---
         // ⚠️ 请在这里替换为您真实的 API Key
@@ -235,8 +242,40 @@
             document.body.removeChild(textarea);
 
             const statusText = success ? `已复制文章 ${id} 的链接！` : '复制失败，请手动复制。';
-            alert(statusText); // 使用简单的 alert 替代，因为这里是工具应用
+            // 使用自定义模态框代替 alert
+            showStatusModal(statusText); 
         }
+
+        /**
+         * 显示状态消息的自定义模态框
+         * @param {string} message 
+         */
+        function showStatusModal(message) {
+            const modalId = 'statusModal';
+            let modal = document.getElementById(modalId);
+            
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = modalId;
+                modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none';
+                modal.innerHTML = `
+                    <div class="bg-white p-6 rounded-lg shadow-2xl transform scale-95 transition-transform duration-300">
+                        <p id="modalMessage" class="text-lg font-semibold text-gray-800 mb-4"></p>
+                        <button onclick="document.getElementById('${modalId}').classList.remove('opacity-100', 'pointer-events-auto'); document.getElementById('${modalId}').classList.add('opacity-0', 'pointer-events-none');" class="w-full py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition duration-150">
+                            确定
+                        </button>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+
+            document.getElementById('modalMessage').textContent = message;
+            // 确保先应用 scale-95 和 opacity-0，然后延迟应用 transform 和 opacity-100
+            setTimeout(() => {
+                modal.classList.add('opacity-100', 'pointer-events-auto');
+            }, 10);
+        }
+
 
         /**
          * 主逻辑：发送消息并获取回复
@@ -343,6 +382,7 @@
                 console.error("Critical error in sendMessage:", error);
                 // 如果是 mockArticles is not defined，会在这里被捕获
                 if (typeof mockArticles === 'undefined') {
+                    // This error path should now be hit on DOMContentLoaded, not here, but kept as a safeguard.
                     responseText = "抱歉，系统暂时出了点小问题。详细错误: mockArticles is not defined。请检查您的 articles.js 文件是否已正确加载。";
                 } else {
                     responseText = `Api错误，请查看控制台。${error.message}`;
@@ -378,17 +418,13 @@
                 initializeApp();
                 sendButton.disabled = false;
             } else {
+                // 如果 mockArticles 仍未定义，显示错误提示
                 chatContainer.innerHTML = '<div class="text-center text-red-500 p-4">错误：未找到 articles.js 文件中的 mockArticles 数据。请检查文件路径和加载顺序。</div>';
                 sendButton.disabled = true;
             }
         });
     </script>
-
-    <!-- 外部库：用于 Markdown 格式化 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.12/marked.min.js"></script>
-    
-    <!-- 引入文章数据，确保在主逻辑之后加载，但它已经在 HTML 之前加载了，所以这里无需重复 -->
-    <!-- <script src="articles.js"></script> -->
     
 </body>
 </html>
+

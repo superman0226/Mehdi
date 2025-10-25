@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- 更新标题 -->
     <title>小强的精彩世界欢迎你</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -53,13 +52,10 @@
 
     <div class="max-w-xl mx-auto p-4 md:p-6 flex flex-col h-screen">
         
-        <!-- Header & Title -->
         <header class="mb-4 bg-white p-4 rounded-xl shadow-lg border-t-4 border-primary">
-            <!-- 更新 h1 标题 -->
             <h1 class="text-xl md:text-2xl font-bold text-gray-800 text-center">小强的精彩世界欢迎你</h1>
         </header>
 
-        <!-- Link Mode Toggle and Controls -->
         <div class="flex justify-between items-center mb-4 p-3 bg-white rounded-xl shadow">
             <div id="linkModeDisplay" class="text-sm font-semibold text-gray-600">
                 链接模式：中文 (默认)
@@ -74,12 +70,9 @@
             </div>
         </div>
 
-        <!-- Chat Area -->
         <div id="chatContainer" class="flex-grow overflow-y-auto bg-white p-4 rounded-xl shadow-lg chat-container mb-4">
-            <!-- 聊天消息将在这里插入 -->
-        </div>
+            </div>
 
-        <!-- Input Area -->
         <div class="bg-white p-4 rounded-xl shadow-lg flex items-center">
             <input type="text" id="userInput" placeholder="输入读者的问题，与小强互动..." class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition duration-150 mr-3">
             <button id="sendButton" class="p-3 bg-accent text-white rounded-lg hover:bg-green-600 transition duration-150 shadow-md flex items-center justify-center disabled:opacity-50" disabled>
@@ -90,12 +83,8 @@
         </div>
     </div>
 
-    <!-- 应用程序逻辑 -->
-    
-    <!-- 外部库：用于 Markdown 格式化 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.12/marked.min.js"></script>
 
-    <!-- 引入文章数据 (FIXED: 修复了缺失的 script 标签) -->
     <script src="articles.js"></script>
 
     <script>
@@ -137,6 +126,7 @@
             chatHistory = [];
             
             // 首次启动时，显示助理的欢迎语
+            // 确保 displayMessage 函数可以正常使用 marked
             const initialMessage = "你好呀！我是你的公众号小助理**小小强**。有什么关于保险、菲律宾生活或者其他想聊的，尽管问我！";
             displayMessage(initialMessage, 'model');
             
@@ -217,7 +207,8 @@
             messageDiv.className = `chat-message mb-4 p-3 rounded-lg max-w-[85%] shadow-md ${role === 'user' ? 'user-message ml-auto' : 'model-message mr-auto'}`;
             
             // 使用 Markdown 解析器进行基本格式化
-            const formattedText = marked.parse(text);
+            // 修正后，这里的 marked 应该已经被定义
+            const formattedText = marked.parse(text); 
             messageDiv.innerHTML = formattedText;
             
             // 如果有推荐，添加推荐卡片
@@ -504,7 +495,8 @@
             if (typeof mockArticles !== 'undefined') {
                 initializeApp();
             } else {
-                showInitError();
+                // 如果 articles.js 404 失败，会进入这个分支，显示错误信息并禁用按钮
+                showInitError(); 
             }
         });
     </script>

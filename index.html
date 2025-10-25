@@ -18,28 +18,26 @@
         #chat-history::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         #chat-history::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
-    <!-- 引入外部文章数据文件 -->
-    <script src="./articles.js"></script>
 </head>
 <body class="p-4 flex flex-col items-center min-h-screen">
 
     <div id="app" class="w-full max-w-lg bg-white rounded-xl shadow-2xl flex flex-col h-[85vh] md:h-[90vh]">
 
         <!-- Header -->
-        <header class="p-4 border-b border-gray-200 bg-indigo-600 text-white rounded-t-xl">
-            <h1 class="text-xl font-bold text-center">🤖 公众号 AI 助理</h1>
-            <p class="text-sm text-center opacity-80">先聊聊，再推荐文章 (运营者工具)</p>
+        <header class="p-4 border-b border-gray-200 bg-indigo-600 text-white rounded-t-xl flex justify-between items-center">
+            <h1 class="text-xl font-bold">🤖 公众号 AI 助理</h1>
+            <button id="reset-button" onclick="resetChat()"
+                    class="px-3 py-1 text-sm bg-indigo-700 hover:bg-indigo-800 rounded-lg transition duration-150 flex items-center space-x-1">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                    <path fill-rule="evenodd" d="M15.31 11.24a5.5 5.5 0 00-6.19-5.18l-.55-.1c-1.39-.28-2.82.02-3.8.87a6 6 0 00-.73 5.48.75.75 0 01-1.35.47 7.5 7.5 0 01.87-6.52c1.4-1.2 3.34-1.63-5.22-1.25a7.002 7.002 0 017.37 6.64.75.75 0 01-1.5-.18zM4.69 8.76a5.5 5.5 0 006.19 5.18l.55.1c1.39.28 2.82-.02 3.8-.87a6 6 0 00.73-5.48.75.75 0 011.35-.47 7.5 7.5 0 01-.87 6.52c-1.4 1.2-3.34 1.63-5.22 1.25a7.002 7.002 0 01-7.37-6.64.75.75 0 011.5.18z" clip-rule="evenodd" />
+                </svg>
+                <span>重置对话</span>
+            </button>
         </header>
 
         <!-- Chat History -->
         <div id="chat-history" class="flex-grow p-4 space-y-4 overflow-y-auto">
-            <!-- Initial Message -->
-            <div class="flex justify-start">
-                <div class="bg-indigo-100 text-gray-800 p-3 rounded-lg max-w-[80%] shadow-md">
-                    <p class="font-semibold text-indigo-700">助理小智</p>
-                    <p>您好！我是您公众号的智能助理，请问有什么可以帮助您的呢？比如您想了解“如何制作咖啡”，或者“最新的行业趋势”？</p>
-                </div>
-            </div>
+            <!-- Initial Message will be added by JS in resetChat() -->
         </div>
 
         <!-- Recommendation Card (Hidden by default) -->
@@ -74,14 +72,18 @@
             </button>
         </div>
     </div>
+    
+    <!-- 引入外部文章数据文件 - 必须在主逻辑脚本之前加载 -->
+    <script src="./articles.js"></script>
 
     <script>
         // 确保 mockArticles 已经被 articles.js 引入
         if (typeof mockArticles === 'undefined' || !Array.isArray(mockArticles)) {
-            console.error("Error: mockArticles array not found. Please ensure articles.js is loaded correctly.");
+            console.error("Error: mockArticles array not found. Please ensure articles.js is loaded correctly and is in the root directory.");
         }
 
         // --- 1. State Variables ---
+        // 🚨 关键步骤：请将您的 API Key 粘贴到 YOUR_API_KEY_HERE 的位置！
         const apiKey = "AIzaSyDEVjh8JYyLAhM58XvONoyI_Dwvs8hS7Vo"; 
         const modelName = 'gemini-2.5-flash-preview-09-2025';
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
@@ -101,10 +103,12 @@
         const recommendationReasoningP = document.getElementById('recommendation-reasoning');
 
         // --- 3. UI Helper Functions ---
+        
+        window.onload = resetChat;
 
-        /** Updates the loading state of the button. */
         function setLoading(isLoading) {
             sendButton.disabled = isLoading || isRecommendationMade;
+            userInput.disabled = isLoading || isRecommendationMade;
             if (isLoading) {
                 sendIcon.classList.add('hidden');
                 loadingIndicator.classList.remove('hidden');
@@ -114,7 +118,6 @@
             }
         }
 
-        /** Adds a new message to the chat history UI. */
         function displayMessage(role, text) {
             const messageWrapper = document.createElement('div');
             messageWrapper.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
@@ -132,17 +135,15 @@
             }
             
             const messageText = document.createElement('p');
-            messageText.innerHTML = text.replace(/\n/g, '<br>'); // Handle new lines
+            messageText.innerHTML = text.replace(/\n/g, '<br>');
             messageBubble.appendChild(messageText);
             
             messageWrapper.appendChild(messageBubble);
             chatHistoryDiv.appendChild(messageWrapper);
             
-            // Scroll to the bottom
             chatHistoryDiv.scrollTop = chatHistoryDiv.scrollHeight;
         }
 
-        /** Displays the final article recommendation card. */
         function displayRecommendation(recommendation) {
             const article = mockArticles.find(a => a.id === recommendation.recommended_id);
             if (article) {
@@ -151,17 +152,29 @@
                 recommendationReasoningP.textContent = `匹配依据: ${recommendation.reasoning}`;
                 recommendationCard.classList.remove('hidden');
                 isRecommendationMade = true;
-                // Disable input after recommendation
-                userInput.disabled = true;
-                sendButton.disabled = true;
+                setLoading(false); // Re-set loading state to apply disabled styles
             } else {
                 displayMessage('assistant', '抱歉，我找到了一个匹配的文章ID，但它不在我的文章库中。');
+                isRecommendationMade = true; // Still end the conversation flow
+                setLoading(false);
             }
         }
 
+        // --- Chat Reset Function ---
+        function resetChat() {
+            chatHistory = [];
+            isRecommendationMade = false;
+            chatHistoryDiv.innerHTML = '';
+            recommendationCard.classList.add('hidden');
+            userInput.disabled = false;
+            sendButton.disabled = false;
+            userInput.value = '';
+            
+            // Add initial welcome message
+            displayMessage('assistant', '您好！我是您公众号的智能助理，请问有什么可以帮助您的呢？比如您想了解“如何制作咖啡”，或者“最新的行业趋势”？');
+        }
 
         // --- 4. Main Chat Logic ---
-
         async function sendMessage() {
             const userText = userInput.value.trim();
             if (!userText || isRecommendationMade) return;
@@ -169,7 +182,7 @@
             // 1. Add user message to history and UI
             chatHistory.push({ role: 'user', parts: [{ text: userText }] });
             displayMessage('user', userText);
-            userInput.value = ''; // Clear input field
+            userInput.value = '';
             setLoading(true);
 
             try {
@@ -206,7 +219,7 @@ ${articlesList}
                 };
 
                 const payload = {
-                    contents: chatHistory, // Send full chat history for context
+                    contents: chatHistory, 
                     systemInstruction: { parts: [{ text: systemPrompt }] },
                     generationConfig: {
                         responseMimeType: "application/json",
@@ -214,9 +227,8 @@ ${articlesList}
                     }
                 };
                 
-                // Fetch with retry logic (simplified)
-                const maxRetries = 3;
                 let response = null;
+                const maxRetries = 3;
                 for (let i = 0; i < maxRetries; i++) {
                     try {
                         response = await fetch(apiUrl, {
@@ -234,7 +246,18 @@ ${articlesList}
                 }
 
                 if (!response || !response.ok) {
-                    throw new Error(`API请求失败，状态码: ${response ? response.status : '网络错误'}`);
+                    let errorDetail = response ? `状态码: ${response.status}` : '网络错误';
+                    
+                    // 尝试解析 API 错误详情
+                    try {
+                        const errorBody = await response.json();
+                        if (errorBody && errorBody.error && errorBody.error.message) {
+                            errorDetail = `API错误: ${errorBody.error.message}`;
+                        }
+                    } catch (e) {
+                        // 无法解析 JSON 错误体，使用原始状态码
+                    }
+                    throw new Error(errorDetail);
                 }
 
                 const result = await response.json();
@@ -260,12 +283,12 @@ ${articlesList}
 
             } catch (error) {
                 console.error("处理消息时发生错误:", error);
-                displayMessage('assistant', `抱歉，系统暂时出了点小问题，请稍后再试。错误信息: ${error.message}`);
+                // Display the specific error message on the UI
+                displayMessage('assistant', `抱歉，系统暂时出了点小问题。详细错误: ${error.message}`);
             } finally {
                 setLoading(false);
             }
         }
     </script>
 </body>
-
 </html>

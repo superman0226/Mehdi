@@ -25,7 +25,7 @@ var mockArticles = [
         id: "A004",
         title: "【深读】优秀的寿险规划师将成为稀缺资源",
         summary: "很多人习惯用购买日常用品的模式来选择保险，却不知道保险销售的是未来的需求，而日常用品解决的是当下的需求。当我们需要规划未来，那就势必会引发自己没有足够的前瞻性的问题，这就需要优秀的寿险规划师来帮你规划。而当下的保险从业人员面临的问题是生存，在面临被业绩考核的前提下，还愿意用专业的规划来服务你，这样的人就是稀缺资源，且行且珍惜。",
-        url: "https://mp.weixin.qq.com/mp/appmsgalbum?__biz=MjM5MTAyMjIxNg==&action=getalbum&album_id=1618030435723182083#wechat_redirect"
+        url: "https://mp.weixin.qq.com/s?__biz=MjM5MTAyMjIxNg==&mid=2650419181&idx=1&sn=d6840dc8d84dce0e8e9d7dcebc09fedb&chksm=beb5620a89c2eb1c889b714178aaa9633c941c1f2836e317506a328cbb164fea9938b8f00daa&token=302031980&lang=zh_CN#rd"
     },
     {
         id: "A005",
@@ -73,3 +73,4 @@ var mockArticles = [
 
 
 // ⚠️ 注意：mockArticles 必须被定义为全局变量，以便 index.html 中的脚本可以访问。
+

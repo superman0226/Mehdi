@@ -693,11 +693,10 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                 ${articleList}
             `;
             
+            // PAYLOAD 结构 (【此处为修复点】：移除 config，systemInstruction 作为顶级参数)
             const payload = {
                 contents: limitedHistory, 
-                config: {
-                    systemInstruction: systemPrompt
-                }
+                systemInstruction: systemPrompt 
             };
 
             let modelReplyText = lang === 'en' ? "Sorry, the system is experiencing a temporary issue." : "抱歉，系统暂时出了点小问题。";

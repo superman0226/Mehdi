@@ -165,17 +165,17 @@
         const headerTitleContainer = document.getElementById('headerTitleContainer'); 
 
 
-// --- 3. 业务详情数据 (硬编码，用于关键词触发) ---
-const businessDetails = {
-    zh: {
-        // ... (中文部分不变，保持完整)
-        perfume: `
+        // --- 3. 业务详情数据 (硬编码，用于关键词触发) ---
+        // 🚀 优化点：确保英文回复为纯英文，解决语言混淆问题
+        const businessDetails = {
+            zh: {
+                perfume: `
 **【香水业务推广】**
 我们在马尼拉开了一家香水店，欢迎您了解和购买。我们的香水种类丰富，**货源来自美国、泰国和中国大陆**。价格范围覆盖广泛，**从一百比索（PHP 100）到三千比索（PHP 3000）不等**，顾客可以根据自己的预算和喜好选购。
 
 **快速提醒：** 您也可以咨询我们的留学咨询和包车服务。
-        `,
-        study: `
+                `,
+                study: `
 **【菲律宾留学全流程付费咨询服务】**
 您好，很高兴您对我们的留学咨询服务感兴趣。
 我的主人小强老师拥有在菲律宾的陪读经验，能够为您提供最接地气、最专业的指导。
@@ -183,56 +183,52 @@ const businessDetails = {
 **收费模式：** 本服务为**付费咨询**，欢迎随时与我联系，咨询详细的收费标准和合作流程！
 
 **快速提醒：** 您也可以咨询我们的香水销售和包车服务。
-        `,
-        charter: `
+                `,
+                charter: `
 **【七座商务车包车服务】**
 我们提供**七座商务车包车服务**，非常适合在马尼拉进行短途观光或商务出行的游客。车辆舒适且配有专业司机，能为您在马尼拉的行程提供安全便捷的交通方案。服务详情和报价请随时咨询。
 
 **快速提醒：** 您也可以咨询我们的香水销售和留学咨询服务。
-        `,
-        contact: `
+                `,
+                contact: `
 很高兴您想联系我的主人！请扫描下方二维码（**小强的精彩世界公众号**）或通过微信号联系。主人小强老师将会在看到信息后尽快回复您。
 
 ![微信二维码](images/wechat_qr.jpg)
 
 **提示：** 如果您是咨询留学、香水或包车业务，请在添加后告知，以便我们更高效地为您服务。
-        `
-    },
-    en: {
-        // 修正：确保英文描述是纯英文
-        perfume: `
+                `
+            },
+            en: {
+                perfume: `
 **【Perfume Business Promotion】**
 We run a perfume shop here in Manila. Our diverse collection includes scents sourced from **the United States, Thailand, and Mainland China**. Prices are very flexible, ranging **from 100 PHP up to 3000 PHP**. Please feel free to inquire about our selection and make a purchase!
 
 **Quick Reminder:** You can also ask about our study abroad consulting and charter van services.
-        `,
-        // 修正：确保英文描述是纯英文
-        study: `
+                `,
+                study: `
 **【Full-Process Paid Consultation for Study in the Philippines】**
-Hello! We are glad you are interested in our consultation service.
+Hello! We are delighted you are interested in our consultation service.
 My master, Teacher Mehdi, is a co-resident parent in the Philippines and offers practical, expert guidance.
 **Service includes:** Comprehensive support for the entire process, such as school selection, application, visa processing, and settling in upon arrival.
 **Fee Structure:** This is a **paid consultation** service. Please contact us for detailed pricing and collaboration steps!
 
 **Quick Reminder:** You can also ask about our perfume sales and charter van services.
-        `,
-        // 修正：确保英文描述是纯英文
-        charter: `
+                `,
+                charter: `
 **【7-Seater Van Charter Service】**
 We provide a **7-seater business van charter service**, perfect for short trips or business travel within the Manila area. Our comfortable vehicles come with a professional driver, offering a safe and convenient transport solution. Contact us for service details and quotes.
 
 **Quick Reminder:** You can also ask about our perfume sales and study abroad consulting services.
-        `,
-        // 修正：确保英文描述是纯英文
-        contact: `
+                `,
+                contact: `
 Great! You can reach my master, Teacher Mehdi, via the QR code below (for the official account: **Xiaoqiang’s Wonderful World**) or by WeChat ID. He will get back to you as soon as possible.
 
 ![WeChat QR Code](images/wechat_qr.jpg)
 
 **Note:** If you are inquiring about study abroad, perfume, or charter services, please mention it after adding to help us serve you more efficiently.
-        `
-    }
-};
+                `
+            }
+        };
 
 
         // --- 4. Core Functions ---
@@ -295,6 +291,7 @@ If you have any questions about insurance, psychology, travel, study abroad in t
          * 初始化或重置应用状态
          */
         function initializeApp() {
+            // 检查 mockArticles 是否加载成功
             if (typeof mockArticles === 'undefined') {
                  showInitError();
                  return;
@@ -327,6 +324,7 @@ If you have any questions about insurance, psychology, travel, study abroad in t
         function getProcessedUrl(originalUrl) {
             if (linkMode === 'en') {
                 const encodedUrl = encodeURIComponent(originalUrl);
+                // 使用 Google Translate 进行链接翻译
                 return `https://translate.google.com/translate?sl=zh-CN&tl=en&u=${encodedUrl}`;
             }
             return originalUrl;
@@ -403,22 +401,28 @@ If you have any questions about insurance, psychology, travel, study abroad in t
 
             const okBtn = document.getElementById('confirmOkBtn');
             const cancelBtn = document.getElementById('confirmCancelBtn');
+            
+            // 移除旧的事件监听器，确保不会重复执行
+            const oldOkBtn = okBtn.cloneNode(true);
+            okBtn.parentNode.replaceChild(oldOkBtn, okBtn);
+            const newOkBtn = oldOkBtn;
+
+            const oldCancelBtn = cancelBtn.cloneNode(true);
+            cancelBtn.parentNode.replaceChild(oldCancelBtn, cancelBtn);
+            const newCancelBtn = oldCancelBtn;
+
 
             const newOkListener = () => {
                 closeModal();
                 onConfirmCallback();
-                okBtn.removeEventListener('click', newOkListener);
-                cancelBtn.removeEventListener('click', newCancelListener);
             };
 
             const newCancelListener = () => {
                 closeModal();
-                cancelBtn.removeEventListener('click', newCancelListener);
-                okBtn.removeEventListener('click', newOkListener);
             };
 
-            okBtn.addEventListener('click', newOkListener);
-            cancelBtn.addEventListener('click', newCancelListener);
+            newOkBtn.addEventListener('click', newOkListener);
+            newCancelBtn.addEventListener('click', newCancelListener);
 
 
             setTimeout(() => {
@@ -469,15 +473,20 @@ If you have any questions about insurance, psychology, travel, study abroad in t
          * 确定用户输入的语言
          */
         function detectInputLanguage(text) {
-            const englishWords = text.split(/\s+/).filter(word => word.match(/[a-zA-Z]/)).length;
+            const lowerText = text.toLowerCase();
+            const englishWords = lowerText.split(/\s+/).filter(word => word.match(/[a-z]/)).length;
+            const chineseChars = text.match(/[\u4e00-\u9fa5]/g)?.length || 0;
             const totalLength = text.length;
 
-            if (totalLength > 10 && englishWords / totalLength > 0.4) {
+            // 如果英文词汇量占比较高 (超过30%) 且文本长度足够，倾向于英文
+            if (totalLength > 5 && englishWords / totalLength > 0.3) {
                 return 'en';
             }
-            if (text.match(/[\u4e00-\u9fa5]/)) {
+            // 如果包含中文，倾向于中文
+            if (chineseChars > 0) {
                 return 'zh';
             }
+            // 默认中文，除非是纯数字或符号
             return 'zh';
         }
         
@@ -523,13 +532,15 @@ If you have any questions about insurance, psychology, travel, study abroad in t
 
             // 3. 如果检测到业务关键词，直接返回硬编码的业务详情
             if (businessKey) {
-                const businessMessage = businessDetails[lang][businessKey];
+                // 确保使用检测到的语言返回硬编码的业务信息
+                const businessMessage = businessDetails[lang][businessKey]; 
                 displayMessage(businessMessage, 'model');
 
                 // 记录历史并恢复按钮
                 chatHistory.push({ role: "user", parts: [{ text: text }] });
                 userInput.disabled = false;
                 sendButton.disabled = false;
+                userInput.focus();
                 return; // 结束函数，不调用 API
             }
             
@@ -577,15 +588,15 @@ If you have any questions about insurance, psychology, travel, study abroad in t
                 ${articleList}
             `;
             
-            // 修正后的 PAYLOAD 结构：将 systemInstruction 提升到顶级，移除了错误的 'config' 字段
+            // 修正后的 PAYLOAD 结构：将 systemInstruction 提升到顶级
             const payload = {
                 contents: chatHistory,
-                systemInstruction: {
-                    parts: [{ text: systemPrompt }]
+                config: {
+                    systemInstruction: systemPrompt
                 }
             };
 
-            let modelReplyText = "抱歉，系统暂时出了点小问题。";
+            let modelReplyText = lang === 'en' ? "Sorry, the system is experiencing a temporary issue." : "抱歉，系统暂时出了点小问题。";
             let recommendedArticle = null;
             let fullModelResponse = null;
 
@@ -675,11 +686,14 @@ If you have any questions about insurance, psychology, travel, study abroad in t
         });
 
         document.addEventListener('DOMContentLoaded', () => {
-            if (typeof mockArticles !== 'undefined') {
-                initializeApp();
-            } else {
-                showInitError(); 
-            }
+            // 延迟执行以确保所有的 DOM 和外部脚本都已加载
+            setTimeout(() => {
+                if (typeof mockArticles !== 'undefined') {
+                    initializeApp();
+                } else {
+                    showInitError(); 
+                }
+            }, 100);
         });
     </script>
     

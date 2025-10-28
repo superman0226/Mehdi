@@ -30,7 +30,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
 
         /* =================================================== */
-        /* 2. 标题响应式样式 (已按用户要求修改：中文大，英文小)    */
+        /* 标题响应式样式 (中文大，英文小) */
         /* =================================================== */
         /* 手机默认样式 */
         .bilingual-header .chinese-text {
@@ -166,7 +166,6 @@
 
 
         // --- 3. 业务详情数据 (硬编码，用于关键词触发) ---
-        // 🚀 优化点：确保英文回复为纯英文，解决语言混淆问题
         const businessDetails = {
             zh: {
                 perfume: `
@@ -470,23 +469,26 @@ If you have any questions about insurance, psychology, travel, study abroad in t
 
 
         /**
-         * 确定用户输入的语言
+         * 确定用户输入的语言 (修复和优化后的逻辑)
+         * 只要包含中文字符，就优先判定为中文 (处理中英文混合输入)。
+         * 如果不含中文但有英文，则判定为英文。
          */
         function detectInputLanguage(text) {
-            const lowerText = text.toLowerCase();
-            const englishWords = lowerText.split(/\s+/).filter(word => word.match(/[a-z]/)).length;
+            // 1. 检查中文字符（\u4e00-\u9fa5 是汉字的 Unicode 范围）
             const chineseChars = text.match(/[\u4e00-\u9fa5]/g)?.length || 0;
-            const totalLength = text.length;
-
-            // 如果英文词汇量占比较高 (超过30%) 且文本长度足够，倾向于英文
-            if (totalLength > 5 && englishWords / totalLength > 0.3) {
-                return 'en';
-            }
-            // 如果包含中文，倾向于中文
+            
+            // 2. 如果包含中文字符，优先级最高，认定为中文。
             if (chineseChars > 0) {
                 return 'zh';
             }
-            // 默认中文，除非是纯数字或符号
+            
+            // 3. 如果不含中文字符，但含有英文字母（例如 'perfume' 或 'Hi'），则认定为英文。
+            const englishLetters = text.match(/[a-zA-Z]/g)?.length || 0;
+            if (englishLetters > 0) {
+                return 'en';
+            }
+            
+            // 4. 否则（纯数字、标点符号、空白），默认中文
             return 'zh';
         }
         
@@ -532,7 +534,7 @@ If you have any questions about insurance, psychology, travel, study abroad in t
 
             // 3. 如果检测到业务关键词，直接返回硬编码的业务详情
             if (businessKey) {
-                // 确保使用检测到的语言返回硬编码的业务信息
+                // 使用检测到的语言返回硬编码的业务信息
                 const businessMessage = businessDetails[lang][businessKey]; 
                 displayMessage(businessMessage, 'model');
 
@@ -567,7 +569,7 @@ If you have any questions about insurance, psychology, travel, study abroad in t
                  articleList = '文章列表不可用，请勿推荐。';
             }
 
-            // 修正后的 System Prompt：强调双语名称和语言一致性
+            // System Prompt：强调双语名称和语言一致性
             const systemPrompt = `
                 你是一个幽默、亲切、爱互动的公众号助理。请注意你的双语名称设定：
                 - **中文语境下，你的名字是“小小强”。**
@@ -588,7 +590,7 @@ If you have any questions about insurance, psychology, travel, study abroad in t
                 ${articleList}
             `;
             
-            // 修正后的 PAYLOAD 结构：将 systemInstruction 提升到顶级
+            // PAYLOAD 结构
             const payload = {
                 contents: chatHistory,
                 config: {

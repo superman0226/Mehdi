@@ -199,7 +199,7 @@
 
 **快速提醒：** 您也可以咨询我们的留学咨询和包车服务。
                 `,
-                // 价格/购买引导 (新增联系方式)
+                // 价格/购买引导 (最高优先级：直接导向真人联系，用于香水)
                 buy_price: `
 **【⚠️ 购买/价格咨询提醒 ⚠️】**
 您好！我是小助理，无法实时查询库存和价格。
@@ -213,6 +213,7 @@
 
 他会尽快回复您，为您确认最新的库存和最优惠的价格！
                 `,
+                // 留学付费咨询（用于强商业意图：流程、费用、办理）
                 study: `
 **【菲律宾留学全流程付费咨询服务】**
 您好，很高兴您对我们的留学咨询服务感兴趣。
@@ -220,7 +221,7 @@
 **服务内容包括：** 涵盖孩子从中国到菲律宾留学的整个流程，包括择校建议、申请材料准备、签证办理、到菲后的住宿安顿等全方位服务。
 **收费模式：** 本服务为**付费咨询**，欢迎随时与我联系，咨询详细的收费标准和合作流程！
 
-**快速提醒：** 您也可以咨询我们的香水销售和包车服务。
+**快速提醒：** 您可以查看我为您推荐的文章，了解更多流程详情。
                 `,
                 charter: `
 **【七座商务车包车服务】**
@@ -250,7 +251,7 @@ We run a perfume shop here in Manila. Our diverse collection includes scents sou
 
 **Quick Reminder:** You can also ask about our study abroad consulting and charter van services.
                 `,
-                 // 价格/购买引导 (新增联系方式)
+                 // 价格/购买引导 (最高优先级：直接导向真人联系，用于香水)
                 buy_price: `
 **【⚠️ Purchase/Price Inquiry Alert ⚠️】**
 Hello! I am just an assistant and cannot check real-time stock or confirm prices.
@@ -264,14 +265,15 @@ Hello! I am just an assistant and cannot check real-time stock or confirm prices
 
 He will reply as soon as possible to confirm the latest stock and best price for you!
                 `,
+                // 留学付费咨询（用于强商业意图：流程、费用、办理）
                 study: `
 **【Full-Process Paid Consultation for Study in the Philippines】**
 Hello! We are delighted you are interested in our consultation service.
-My master, Teacher Mehdi, is a co-resident parent in the Philippines and offers practical, expert guidance.
+My master, Teacher Mehdi, offers practical, expert guidance as an experienced co-resident parent in the Philippines.
 **Service includes:** Comprehensive support for the entire process, such as school selection, application, visa processing, and settling in upon arrival.
-**Fee Structure:** This is a **paid consultation** service. Please contact us for detailed pricing and collaboration steps!
+**Fee Structure:** This is a **paid consultation** service. Contact us for detailed pricing and collaboration steps!
 
-**Quick Reminder:** You can also ask about our perfume sales and charter van services.
+**Quick Reminder:** You can check the article I recommended for you to know more about the process.
                 `,
                 charter: `
 **【7-Seater Van Charter Service】**
@@ -534,6 +536,7 @@ If you have questions about **insurance, psychology, travel, study abroad in the
         
         /**
          * 业务关键词检测函数
+         * 返回: 'contact', 'buy_price', 'study', 'study_smart', 'perfume', 'perfume_smart', 'charter' 或 null
          */
         function checkBusinessKeyword(text) {
             const lowerText = text.toLowerCase();
@@ -546,18 +549,21 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                 return 'contact';
             }
 
-            // 2. 购买/价格关键词 
+            // 2. 购买/价格关键词 (仅用于香水)
             const isBuyPriceQuery = buyPriceKeywords.some(keyword => lowerText.includes(keyword));
             if (isBuyPriceQuery) {
-                return 'buy_price'; // 返回引导联系真人的硬编码类型
+                // 如果是香水购买/价格，优先返回 buy_price
+                if (lowerText.includes('香水') || lowerText.includes('perfume')) {
+                     return 'buy_price'; // 返回引导联系真人的硬编码类型
+                }
             }
             
-            // 3. 留学咨询关键词 (通用问题走 AI，具体流程走硬编码)
-            const isStudyKeyword = (lowerText.includes('留学') || lowerText.includes('咨询') || lowerText.includes('study') || lowerText.includes('abroad') || lowerText.includes('consult') || lowerText.includes('学校') || lowerText.includes('中学') || lowerText.includes('大学') || lowerText.includes('school'));
+            // 3. 留学咨询关键词 (study: 强商业意图, study_smart: 知识探索意图)
+            const isStudyKeyword = (lowerText.includes('留学') || lowerText.includes('咨询') || lowerText.includes('study') || lowerText.includes('abroad') || lowerText.includes('consult') || lowerText.includes('学校') || lowerText.includes('中学') || lowerText.includes('大学') || lowerText.includes('school') || lowerText.includes('visa') || lowerText.includes('签证'));
             
             if (isStudyKeyword) {
-                // 排除性关键词：询问具体流程、费用、价格时，直接转为硬编码的“付费咨询”推广
-                const specificStudyKeywords = ['流程', '费用', '多少钱', '价格', '怎么开始', '合作', '收费', 'process', 'fee', 'price', 'cost', 'paid'];
+                // 强商业意图关键词：询问具体流程、费用、价格、服务
+                const specificStudyKeywords = ['流程', '费用', '多少钱', '价格', '怎么开始', '合作', '收费', 'process', 'fee', 'price', 'cost', 'paid', '办理', '代办', 'service'];
                 
                 const isSpecificStudyQuery = specificStudyKeywords.some(keyword => lowerText.includes(keyword));
 
@@ -566,11 +572,11 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                     return 'study';
                 }
                 
-                // 否则（如“留学怎么样”、“优势”），返回 null，走 AI 智能回复和文章推荐
-                return null;
+                // 否则（如“留学怎么样”、“优势”），返回 'study_smart'，走 AI 智能回复和文章推荐
+                return 'study_smart'; 
             }
             
-            // 4. 香水关键词 (所有品牌/推荐咨询走 AI，仅业务介绍走硬编码)
+            // 4. 香水关键词 (perfume: 笼统业务介绍, perfume_smart: 品牌/推荐咨询)
             if (lowerText.includes('香水') || lowerText.includes('perfume') || lowerText.includes('scent') || lowerText.includes('shop') || lowerText.includes('护肤品') || lowerText.includes('skincare')) {
                 
                 // 判断是否为**极其笼统**的“业务介绍”查询
@@ -578,13 +584,13 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                 
                 const isGenericBusinessQuery = genericQueryKeywords.some(keyword => lowerText.includes(keyword));
 
-                // 仅当用户明确询问“业务/介绍”时，返回硬编码的业务推广
+                // 仅当用户明确询问“业务/介绍”时，返回硬编码的 'perfume' 业务推广
                 if (isGenericBusinessQuery) {
                      return 'perfume';
                 }
                 
-                // 否则（问品牌、推荐、怎么样），返回 null，交给 AI 智能回答
-                return null; 
+                // 否则（问品牌、推荐、怎么样），返回 'perfume_smart'，交给 AI 智能回答并植入联系方式
+                return 'perfume_smart'; 
             }
             
             // 5. 包车/租车关键词 
@@ -592,7 +598,7 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                 return 'charter';
             }
             
-            return null; // 没有匹配到业务关键词，进入 AI 智能回复
+            return null; // 没有匹配到业务关键词，进入默认 AI 智能回复
         }
 
         // --- 优化后的 sendMessage 函数 (最终修复版本) ---
@@ -610,30 +616,49 @@ If you have questions about **insurance, psychology, travel, study abroad in the
             const lang = detectInputLanguage(text);
             const businessKey = checkBusinessKeyword(text);
 
-            // 3. 如果检测到业务关键词，直接返回硬编码的业务详情
-            if (businessKey) {
+            // 3. 如果检测到业务关键词，返回硬编码的业务详情（特殊处理 study, buy_price, contact）
+            if (businessKey && businessKey !== 'perfume_smart' && businessKey !== 'study_smart') {
                 const businessMessage = businessDetails[lang][businessKey]; 
                 
-                // 如果触发了 buy_price 或 contact，需要手动添加二维码图片
+                // 定义一个变量来存储要强制推荐的文章对象
+                let forcedRecommendation = null; 
+
+                // --- ⚠️ 强商业意图：留学（费用/流程），强制推荐流程文章 ---
+                if (businessKey === 'study') {
+                    // ❌ 假设您的留学流程文章 ID 是 'A005'。请务必替换！
+                    const mandatoryArticleId = 'A017'; 
+                    
+                    forcedRecommendation = mockArticles.find(a => a.id === mandatoryArticleId);
+
+                    if (!forcedRecommendation) {
+                        console.warn(`Warning: Forced recommendation article ID ${mandatoryArticleId} not found!`);
+                    }
+                }
+                
+                // --- 特殊处理：二维码图片 ---
                 if (businessKey === 'contact' || businessKey === 'buy_price') {
                     // ⚠️ 假设 wechat_qr.jpg 存在于当前目录
                     const messageWithImage = businessMessage + `<p class="mt-4 text-center"><img src="wechat_qr.jpg" alt="WeChat QR Code" class="max-w-[150px] mx-auto"></p>`;
-                    displayMessage(messageWithImage, 'model');
+                    // 最终硬编码回复，带上或不带上强制推荐
+                    displayMessage(messageWithImage, 'model', forcedRecommendation); 
+
                 } else {
-                     displayMessage(businessMessage, 'model');
+                    // 最终硬编码回复，带上或不带上强制推荐
+                     displayMessage(businessMessage, 'model', forcedRecommendation);
                 }
                 
                 // 记录历史并恢复按钮
                 chatHistory.push({ role: "user", parts: [{ text: text }] });
+                
+                if (chatHistory.length > MAX_HISTORY_MESSAGES) {
+                    chatHistory = chatHistory.slice(-MAX_HISTORY_MESSAGES);
+                }
+                
                 userInput.disabled = false;
                 sendButton.disabled = false;
                 userInput.focus();
                 
-                // 确保 chatHistory 不超出限制
-                if (chatHistory.length > MAX_HISTORY_MESSAGES) {
-                    chatHistory = chatHistory.slice(-MAX_HISTORY_MESSAGES);
-                }
-                return; 
+                return; // <--- 硬编码分支的 return 
             }
             
             // 4. 实时智能回复 (调用 Gemini API)
@@ -649,15 +674,10 @@ If you have questions about **insurance, psychology, travel, study abroad in the
             });
 
             // B. 准备 API 调用
-            // 确保历史记录中最后一个是用户当前输入
-            // 只保留最近的 MAX_HISTORY_MESSAGES - 1 条历史，为当前用户输入腾出空间
             let limitedHistory = [...chatHistory].slice(-(MAX_HISTORY_MESSAGES - 1)); 
-            
-            // 1. 将用户当前输入添加到历史列表末尾
-            // 注意：这里是 user 角色，用于 API 调用
             limitedHistory.push({ role: "user", parts: [{ text: text }] }); 
             
-            // 2. 准备文章列表和 System Prompt
+            // 准备文章列表和 System Prompt
             let articleList = '';
             if (typeof mockArticles !== 'undefined') {
                 articleList = mockArticles.map(a => 
@@ -667,8 +687,8 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                  articleList = '文章列表不可用，请勿推荐。';
             }
 
-            // 增强 System Prompt
-            const systemPrompt = `
+            // 1. 定义基础 System Prompt 
+            const baseSystemPrompt = `
                 你是一个幽默、亲切、爱互动的公众号助理。请注意你的双语名称设定：
                 - **中文语境下，你的名字是“小小强”。**
                 - **英文语境下，你的名字是“Mehdi”。**
@@ -683,35 +703,90 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                 4. **精准文章推荐：** 当读者的话题与保险、心理、菲律宾生活、旅游或留学相关时，你必须从下面的“文章列表”中选择一篇最精准的文章进行推荐。
                 5. **推荐理由：** **你需要在回复文本中自然地提到推荐这篇文章的理由**，然后才输出推荐格式。
                 6. **推荐格式：** 必须在回复的最后一行以严格的格式输出推荐ID，格式为：[RECOMMEND_ID: Axxx]，其中 Axxx 是文章ID。如果没有合适的文章，则回复[RECOMMEND_ID: NONE]。
-                7. **联系主人：** 如果有人想联系作者本身，请指引他到微信公众号“小强的精彩世界”去订阅和留言，留下他的联系方式，作者会联系他。
-                8. **注意：** 仅在客户未提及“香水”、“留学”、“包车”或“联系”等业务关键词时，才使用此模型回复。否则，程序将直接回复硬编码的业务详情。
+                7. **注意：** 仅在客户未提及“香水”、“留学”、“包车”或“联系”等业务关键词时，才使用此模型回复。否则，程序将直接回复硬编码的业务详情。
 
                 --- 文章列表（用于推荐，请勿直接发送给用户）---
                 ${articleList}
             `;
             
-            // ... (代码上半部分保持不变) ...
+            // 2. 根据智能关键词，定制化 System Prompt
+            let finalSystemPrompt;
+            let isSmartPerfumeQuery = (businessKey === 'perfume_smart'); // 智能香水
+            let isSmartStudyQuery = (businessKey === 'study_smart');   // 智能留学
 
-            // 增强 System Prompt
-            // ... (systemPrompt 变量定义保持不变) ...
+            if (isSmartPerfumeQuery) {
+                // 引入香水购买联系方式的硬编码文本
+                const contactInfo = lang === 'zh' 
+                    ? `
+**【想购买？请联系真人主人！】**
+如果您是想购买这款香水，请务必直接联系我的真人主人！我只是助理，无法处理交易。
+**联系方式：** 菲律宾手机 09994233236 (可直拨)，或联系微信/Facebook: Mehdi Lee。请提供您想购买的**品牌/名称、容量和数量**，他会给您最优惠的价格和库存确认！
+` 
+                    : `
+**【Want to Purchase? Contact the Owner Directly!】**
+If you wish to purchase this perfume, please contact my master directly! I am only an assistant and cannot process transactions.
+**Contact Info:** Philippine Mobile 09994233236 (Direct Call), or WeChat/Facebook: Mehdi Lee. Please provide the **brand/name, size, and quantity** you want to buy, and he will confirm the best price and stock for you!
+`;
+                
+                finalSystemPrompt = `
+                    ${baseSystemPrompt}
+                    
+                    --- 【特别指令：香水智能回复模式】 ---
+                    **1. 智能聊天**：用户正在询问具体的香水。**你必须**利用你的知识，展开聊聊这款香水的信息，包括它的香型、使用者评价、历史或大概的价格范围（如果你知道的话）。
+                    **2. 植入销售**：在你的回复中，你必须在**最后一个自然段**自然地植入下面的“真人联系方式”文本。
+                    
+                    ${contactInfo}
+                    
+                    **3. 推荐限制**：在这种模式下，**不需要**推荐文章（因为重点是香水和销售），请务必回复 [RECOMMEND_ID: NONE]。
+                `;
+            } 
             
-            // 核心修复点：将 systemPrompt 字符串封装成 Content 对象
-            // PAYLOAD 结构 
+            else if (isSmartStudyQuery) {
+                // 引入付费咨询服务的硬编码文本
+                const studyServiceInfo = lang === 'zh' 
+                    ? `
+**【想省心？考虑我们的付费咨询服务！】**
+我的主人小强老师是专业的菲律宾陪读家长，深谙全流程。如果您觉得信息太复杂，想省心省力，可以随时联系我们，咨询**全流程付费服务**！服务内容涵盖从择校到安顿的每一步。
+**联系方式：** 请通过微信或Facebook (Mehdi Lee) 留言，或者拨打菲律宾手机 09994233236，咨询详细的收费标准和合作流程！
+` 
+                    : `
+**【Want Stress-Free Consulting? Inquire About Our Paid Service!】**
+My master, Teacher Mehdi, is an experienced co-resident parent in the Philippines and knows the entire process. If the information is overwhelming, contact us for our **Full-Process Paid Consultation Service**! It covers everything from school selection to settling in.
+**Contact Info:** Message us via WeChat or Facebook (Mehdi Lee), or call the Philippine mobile 09994233236, to inquire about our detailed fee structure and collaboration process!
+`;
+                
+                finalSystemPrompt = `
+                    ${baseSystemPrompt}
+                    
+                    --- 【特别指令：留学智能回复模式】 ---
+                    **1. 智能聊天**：用户正在询问菲律宾留学、学校或环境等知识性问题。**你必须**利用你的知识和作者的真实经验（如陪读、生活感受），展开聊聊这些信息，提供专业且接地气的建议。
+                    **2. 植入销售**：在你的回复中，你必须在**最后一个自然段**自然地植入下面的“付费服务”文本。
+                    
+                    ${studyServiceInfo}
+                    
+                    **3. 推荐与限制**：在这种模式下，**仍然允许**你推荐与留学、生活、旅行相关的文章（使用 [RECOMMEND_ID: Axxx] 格式）。如果找不到相关的，则回复 [RECOMMEND_ID: NONE]。
+                `;
+            }
+            
+            // 默认 AI 模式
+            else {
+                finalSystemPrompt = baseSystemPrompt;
+            }
+            
+            // 3. 构建 PAYLOAD (使用 finalSystemPrompt)
             const payload = {
-                // contents 数组只包含 user/model 消息
                 contents: limitedHistory, 
-                // 修复：将纯字符串替换为 Content 对象结构
+                // 使用下划线命名法的 Content 对象结构
                 system_instruction: {
                     parts: [
                         {
-                            text: systemPrompt
+                            text: finalSystemPrompt
                         }
                     ]
                 }
             };
             
             let modelReplyText = lang === 'en' ? "Sorry, the system is experiencing a temporary issue." : "抱歉，系统暂时出了点小问题。";
-            // ... (API 调用和错误处理部分保持不变) ...
             let recommendedArticle = null;
             let fullModelResponse = null;
             let apiError = false; 
@@ -726,7 +801,6 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                 if (!response.ok) {
                     apiError = true;
                     const errorJson = await response.json();
-                    // 修复 API 400 错误的重点在于确保 payload 结构正确。如果 status 仍非 200，则显示错误信息。
                     const errorMessage = errorJson.error?.message || response.statusText;
                     modelReplyText = lang === 'en' 
                         ? `API Request Failed (Status ${response.status}). Error: ${errorMessage}`
@@ -754,7 +828,6 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                         }
                         
                         // 记录历史
-                        // chatHistory 应该记录用户发送给 API 的最后一条消息（limitedHistory的最后一个元素）
                         chatHistory = [...chatHistory.slice(-(MAX_HISTORY_MESSAGES - 2)), 
                             limitedHistory[limitedHistory.length - 1], // 用户消息
                             { role: "model", parts: [{ text: fullModelResponse }] } // 模型返回的完整消息（包含 RECOMMEND_ID）

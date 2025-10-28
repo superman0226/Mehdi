@@ -649,7 +649,7 @@ If you have questions about **insurance, psychology, travel, study abroad in the
 
             // B. 准备 API 调用
             let limitedHistory = [...chatHistory].slice(-(MAX_HISTORY_MESSAGES - 1)); 
-            limitedHistory.push({ role: "user", parts: [{ text: text }] }); 
+            limitedHistory.push({ role: "user", parts: [{ text: text, role: "user" }] }); // 确保用户的角色是 user
 
             let articleList = '';
             if (typeof mockArticles !== 'undefined') {
@@ -683,13 +683,18 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                 ${articleList}
             `;
             
-            // PAYLOAD 结构 (【最终修正】：将 systemInstruction 作为顶级参数)
+            // 1. 创建 System Content 对象 (【核心修复点】)
+            const systemContent = {
+                role: "system", // 明确指定角色为 'system'
+                parts: [{ text: systemPrompt }]
+            };
+
+            // 2. 将 System Content 放在历史记录的最前面
+            let fullContents = [systemContent, ...limitedHistory];
+
+            // PAYLOAD 结构 (【最终修正】：移除 systemInstruction 字段，将其内容注入 contents 数组)
             const payload = {
-                contents: limitedHistory, 
-                systemInstruction: systemPrompt 
-                // generationConfig: {
-                //    temperature: 0.8 // 可选，如果需要进一步调整模型行为，可在此处添加
-                // }
+                contents: fullContents
             };
 
             let modelReplyText = lang === 'en' ? "Sorry, the system is experiencing a temporary issue." : "抱歉，系统暂时出了点小问题。";
@@ -736,8 +741,9 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                         }
                         
                         // 记录历史
-                        chatHistory.push(limitedHistory[limitedHistory.length - 1]);
-                        chatHistory.push({ role: "model", parts: [{ text: fullModelResponse }] }); 
+                        // 注意：这里只记录用户和模型的实际对话，不记录 system prompt
+                        chatHistory.push(limitedHistory[limitedHistory.length - 1]); 
+                        chatHistory.push({ role: "model", parts: [{ text: fullModelResponse, role: "model" }] }); 
                         if (chatHistory.length > MAX_HISTORY_MESSAGES) {
                             chatHistory = chatHistory.slice(-MAX_HISTORY_MESSAGES);
                         }

@@ -30,28 +30,29 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
 
         /* =================================================== */
-        /* 2. 标题响应式样式 (实现双语提示适配)                        */
+        /* 2. 标题响应式样式 (已按用户要求修改：中文大，英文小)    */
         /* =================================================== */
         /* 手机默认样式 */
         .bilingual-header .chinese-text {
-            font-size: 1.25rem; /* text-xl */
-            font-weight: 700;
+            font-size: 1.5rem; /* 增大中文，text-2xl */
+            font-weight: 800; /* 加粗中文 */
+            line-height: 1.2;
+            color: #3b82f6; /* 使用 primary 颜色，使其突出 */
         }
         .bilingual-header .english-text {
-            font-size: 1.5rem; /* text-2xl */
-            font-weight: 800;
-            color: #3b82f6; /* 使用 primary 颜色 */
-            line-height: 1.2;
+            font-size: 1rem; /* 减小英文，text-base */
+            font-weight: 500; /* 减轻英文的粗细 */
+            color: #6b7280; /* 使用灰色，使其次要 */
             margin-top: 4px;
         }
 
         /* 电脑/平板适配 (md: 768px 以上) */
         @media (min-width: 768px) {
             .bilingual-header .chinese-text {
-                font-size: 1.5rem; /* md:text-2xl */
+                font-size: 2rem; /* md:text-3xl，PC端进一步放大中文 */
             }
             .bilingual-header .english-text {
-                font-size: 2rem; /* md:text-3xl */
+                font-size: 1.25rem; /* md:text-xl，PC端进一步减小英文 */
             }
         }
         /* =================================================== */
@@ -161,8 +162,7 @@
         const resetButton = document.getElementById('resetButton');
         const toggleLinkModeButton = document.getElementById('toggleLinkMode');
         const linkModeDisplay = document.getElementById('linkModeDisplay');
-        // const headerTitle = document.getElementById('headerTitle'); // 原始代码中已删除
-        const headerTitleContainer = document.getElementById('headerTitleContainer'); // 新增
+        const headerTitleContainer = document.getElementById('headerTitleContainer'); 
 
 
         // --- 3. 业务详情数据 (硬编码，用于关键词触发) ---
@@ -233,39 +233,42 @@ Great! You can reach my master, Teacher Xiaoqiang, via the QR code below (for th
         // --- 4. Core Functions ---
 
         /**
-         * 获取当前语言的欢迎语
+         * 获取当前语言的欢迎语 (助理名字根据语言切换)
          */
         function getInitialMessage(lang) {
-            const zhMessage = `你好啊！我是你的公众号小助理**小小强**。我的主人**小强老师**是一位高学历、高知识结构、有广东、北京等多地丰富经历生活、热爱公益，曾被**中央电视台《人物》专栏**报道过的有志人士。通晓计算机、信息技术、企业管理（10年以上工作经历）、人寿保险（12年以上工作经历）、心理学（研究血型与性格相关20年）。10多年以来撰写了400多篇文章。**2023年以后带娃来菲律宾留学并旅居在此**，又撰写了很多有关菲律宾留学、旅行、生活的相关文章。
+            if (lang === 'zh') {
+                const zhMessage = `你好啊！我是你的公众号小助理**小小强**。我的主人**小强老师**是一位高学历、高知识结构、有广东、北京等多地丰富经历生活、热爱公益，曾被**中央电视台《人物》专栏**报道过的有志人士。通晓计算机、信息技术、企业管理（10年以上工作经历）、人寿保险（12年以上工作经历）、心理学（研究血型与性格相关20年）。10多年以来撰写了400多篇文章。**2023年以后带娃来菲律宾留学并旅居在此**，又撰写了很多有关菲律宾留学、旅行、生活的相关文章。
 
-**我用了一年时间走遍了菲律宾，还开了一家香水店，买了一辆丰田七座商务车，并把中国孩子到菲律宾读中学和考大学的路全摸清了。**
+**我用了一年时间走遍了菲律宾，还开了一家香水店，买了一辆丰田七座商务车，并把中国孩子到菲律宾读中学和考大学的路（包括华侨生联考）全摸清了。**
 
 如果您有关于保险、心理、菲律宾旅行、留学，马尼拉地区包车游、买香水和护肤品，或者其他想聊的，尽管问我！`;
-
-            // MODIFIED ENGLISH WELCOME MESSAGE (CCTV changed to China Central Television)
-            const enMessage = `Hello! I am your official account assistant, **Xiao Xiaoqiang**. My master, **Teacher Xiaoqiang**, is a highly educated and knowledgeable person with rich experience from various regions, including Guangdong and Beijing. He is a public-spirited individual who was once featured in **China Central Television (CCTV)'s "People" column**. He is proficient in Computer Science, Information Technology, Business Management (10+ years experience), Life Insurance (12+ years experience), and Psychology (20 years researching blood types and personality). He has authored over 400 articles in the last decade. **Since 2023, he has been residing in the Philippines, accompanying his child for school**, and has written many articles on Philippine study, travel, and life.
+                return zhMessage;
+            } else {
+                const enMessage = `Hello! I am your official account assistant, **Xiao xiao qiang**. My master, **Teacher Mehdi**, is a highly educated and knowledgeable person with rich experience from various regions, including Guangdong and Beijing. He is a public-spirited individual who was once featured in **China Central Television (CCTV)'s "People" column**. He is proficient in Computer Science, Information Technology, Business Management (10+ years experience), Life Insurance (12+ years experience), and Psychology (20 years researching blood types and personality). He has authored over 400 articles in the last decade. **Since 2023, he has been residing in the Philippines, accompanying his child for school**, and has written many articles on Philippine study, travel, and life.
 
 **I spent a year traveling all over the Philippines, opened a perfume shop, bought a Toyota 7-seater business van, and thoroughly figured out the path for Chinese children to study in middle school and university in the Philippines.**
 
 If you have any questions about insurance, psychology, travel, study abroad in the Philippines, charter tours in the Manila area, buying perfumes and skincare products, or anything else you'd like to discuss, feel free to ask!`;
-
-            return lang === 'en' ? enMessage : zhMessage;
+                return enMessage;
+            }
         }
 
         /**
-         * 更新链接模式的显示和按钮文本
+         * 更新链接模式的显示和按钮文本 (已修复输入框占位符)
          */
         function updateLinkModeUI() {
             if (linkMode === 'zh') {
                 linkModeDisplay.textContent = '链接模式：中文 (默认) | Link Mode: Chinese (Default)';
                 toggleLinkModeButton.textContent = '切换到英文翻译 | Switch to English';
+                // 修正点：中文占位符
                 userInput.placeholder = '输入读者的问题，与小强互动...';
                 toggleLinkModeButton.classList.remove('bg-green-600');
                 toggleLinkModeButton.classList.add('bg-primary');
             } else {
                 linkModeDisplay.textContent = '链接模式：英文翻译 | Link Mode: English Translation';
                 toggleLinkModeButton.textContent = '切换到中文 (默认) | Switch to Chinese';
-                userInput.placeholder = 'Ask a question to Xiaoqiang...';
+                // 修正点：英文占位符
+                userInput.placeholder = 'Ask a question to Xiaoqiang, the assistant...'; 
                 toggleLinkModeButton.classList.remove('bg-primary');
                 toggleLinkModeButton.classList.add('bg-green-600');
             }
@@ -520,9 +523,6 @@ If you have any questions about insurance, psychology, travel, study abroad in t
 
                 // 记录历史并恢复按钮
                 chatHistory.push({ role: "user", parts: [{ text: text }] });
-                // 这里我们简化一下，只记录用户消息，模型消息会在后面 API 调用时记录
-                // 为了保持历史记录准确性，这里可以不记录，API 调用后再统一记录
-
                 userInput.disabled = false;
                 sendButton.disabled = false;
                 return; // 结束函数，不调用 API
@@ -551,10 +551,18 @@ If you have any questions about insurance, psychology, travel, study abroad in t
                  articleList = '文章列表不可用，请勿推荐。';
             }
 
+            // 修正后的 System Prompt：强调双语名称和语言一致性
             const systemPrompt = `
-                你是一个幽默、亲切、爱互动的公众号助理，名字叫“小小强”。你的主要任务是：
+                你是一个幽默、亲切、爱互动的公众号助理。请注意你的双语名称设定：
+                - **中文语境下，你的名字是“小小强”。**
+                - **英文语境下，你的名字是“Mehdi”。**
+
+                你的主要任务是：
                 1. **扮演作者分身：** 你是作者本人（一位保险专家），过去在广东、北京生活，但从2023年开始，因为陪孩子读书，现定居在菲律宾。你必须主动、自然地将“北京生活”、“心理学”、“菲律宾陪读经历”、“跨国生活感受”等真实故事融入聊天中。
-                2. **语言保持一致：** 必须使用客户输入的语言（中文或英文）进行回复。
+                
+                **【🚨 关键指令：语言与名称一致性 🚨】**
+                2. **语言与名称保持一致：** **你必须严格使用客户输入的语言进行回复。同时，在回复中请使用对应语言的名字。** (YOU MUST strictly reply in the language the user uses, and use the corresponding name: "小小强" for Chinese, "Mehdi" for English.)
+                
                 3. **精准文章推荐：** 当读者的话题与保险、心理、菲律宾生活、旅游或留学相关时，你必须从下面的“文章列表”中选择一篇最精准的文章进行推荐。
                 4. **推荐格式：** 必须在回复的最后一行以严格的格式输出推荐ID，格式为：[RECOMMEND_ID: Axxx]，其中 Axxx 是文章ID。如果没有合适的文章，则回复[RECOMMEND_ID: NONE]。
                 5. **联系主人：** 如果有人想联系作者本身，请指引他到微信公众号“小强的精彩世界”去订阅和留言，留下他的联系方式，作者会联系他。
@@ -564,23 +572,12 @@ If you have any questions about insurance, psychology, travel, study abroad in t
                 ${articleList}
             `;
             
-            // ======================================================
-            // ⚠️ 修正后的 PAYLOAD 结构
-            // 1. 移除了 'config' 字段
-            // 2. 将 'systemInstruction' 提升到顶级
-            // ======================================================
+            // 修正后的 PAYLOAD 结构：将 systemInstruction 提升到顶级，移除了错误的 'config' 字段
             const payload = {
                 contents: chatHistory,
                 systemInstruction: {
                     parts: [{ text: systemPrompt }]
                 }
-                // 如果需要配置温度(temperature)等，可以添加 generationConfig
-                /*
-                generationConfig: {
-                    temperature: 0.8,
-                    maxOutputTokens: 2048
-                }
-                */
             };
 
             let modelReplyText = "抱歉，系统暂时出了点小问题。";

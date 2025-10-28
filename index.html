@@ -1,12 +1,3 @@
-您提出了一个非常好的改进点——用户界面的国际化。对于您的程序目标客户（中文用户和需要英文信息的用户）来说，界面上的双语提示能够显著提升用户体验。
-我将修改 index.html 中所有硬编码的中文提示，改为根据当前的 linkMode（链接模式）动态显示中英双语提示。
-主要修改的区域包括：
- * <header> 中的标题。
- * <div id="linkModeDisplay"> 中的模式显示。
- * <input> 中的占位符。
-最终 index.html 代码 (包含界面双语提示)
-我将使用 JavaScript 来动态更新 UI 文本，以便与 linkMode 状态保持一致。
-注意： 核心逻辑保持不变，只修改了 UI 文本的显示方式。
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -618,4 +609,3 @@ If you have any questions about insurance, psychology, travel, study abroad in t
     
 </body>
 </html>
-

@@ -188,10 +188,6 @@
 * **菲律宾手机：** 09994233236 (可直接拨打)
 
 他会尽快回复您，为您确认最新的库存和最优惠的价格！
-
-<div class="mt-4 flex justify-center">
-    <img src="wechat_qr.jpg" alt="微信二维码" class="max-w-[150px] w-full rounded-lg shadow-md">
-</div>
                 `,
                 study: `
 **【菲律宾留学全流程付费咨询服务】**
@@ -219,11 +215,9 @@
 
 主人小强老师将会在看到信息后尽快回复您。
 
-<div class="mt-4 flex justify-center">
-    <img src="wechat_qr.jpg" alt="微信二维码" class="max-w-[150px] w-full rounded-lg shadow-md">
-</div>
+![微信二维码](wechat_qr.jpg)
 
-**提示：** 如果您是咨询保险、留学、香水或包车业务，请在添加后告知，以便我们更高效地为您服务。
+**提示：** 如果您是咨询留学、香水或包车业务，请在添加后告知，以便我们更高效地为您服务。
                 `
             },
             en: {
@@ -247,10 +241,6 @@ Hello! I am just an assistant and cannot check real-time stock or confirm prices
 * **Philippine Mobile:** 09994233236 (Philippines)
 
 He will reply as soon as possible to confirm the latest stock and best price for you!
-
-<div class="mt-4 flex justify-center">
-    <img src="wechat_qr.jpg" alt="WeChat QR Code" class="max-w-[150px] w-full rounded-lg shadow-md">
-</div>
                 `,
                 study: `
 **【Full-Process Paid Consultation for Study in the Philippines】**
@@ -278,9 +268,7 @@ Great! You want to reach my master, Teacher Mehdi.
 
 My master, Teacher Mehdi, will get back to you as soon as possible.
 
-<div class="mt-4 flex justify-center">
-    <img src="wechat_qr.jpg" alt="WeChat QR Code" class="max-w-[150px] w-full rounded-lg shadow-md">
-</div>
+![WeChat QR Code](wechat_qr.jpg)
 
 **Note:** If you are inquiring about study abroad, perfume, or charter services, please mention it after adding to help us serve you more efficiently.
                 `
@@ -289,7 +277,204 @@ My master, Teacher Mehdi, will get back to you as soon as possible.
 
 
         // --- 4. Core Functions ---
-// ... (getInitialMessage, updateLinkModeUI, toggleLinkMode, initializeApp, showInitError, getProcessedUrl, showStatusModal, copyArticleLink, showConfirmModal 保持不变)
+
+        /**
+         * 获取当前语言的欢迎语 (助理名字根据语言切换)
+         */
+        function getInitialMessage(lang) {
+            if (lang === 'zh') {
+                const zhMessage = `你好啊！我是你的公众号小助理**小小强**。我的主人**小强老师**是一位高学历、高知识结构、有广东、北京等多地丰富经历生活、热爱公益，曾被**中央电视台《人物》专栏**报道过的有志人士。通晓计算机、信息技术、企业管理（10年以上工作经历）、人寿保险（12年以上工作经历）、心理学（研究血型与性格相关20年）。10多年以来撰写了400多篇文章。**2023年以后带娃来菲律宾留学并旅居在此**，又撰写了很多有关菲律宾留学、旅行、生活的相关文章。
+
+**我用了一年时间走遍了菲律宾，还开了一家香水店，买了一辆丰田七座商务车，并把中国孩子到菲律宾读中学和考大学的路（包括华侨生联考）全摸清了。**
+
+如果您有关于保险、心理、菲律宾旅行、留学，马尼拉地区包车游、买香水和护肤品，或者其他想聊的，尽管问我！`;
+                return zhMessage;
+            } else {
+                const enMessage = `Hello! I am your official account assistant, **Xiao xiao qiang**. My master, **Teacher Mehdi**, is a highly educated and knowledgeable person with rich experience from various regions, including Guangdong and Beijing. He is a public-spirited individual who was once featured in **China Central Television (CCTV)'s "People" column**. He is proficient in Computer Science, Information Technology, Business Management (10+ years experience), Life Insurance (12+ years experience), and Psychology (20 years researching blood types and personality). He has authored over 400 articles in the last decade. **Since 2023, he has been residing in the Philippines, accompanying his child for school**, and has written many articles on Philippine study, travel, and life.
+
+**I spent a year traveling all over the Philippines, opened a perfume shop, bought a Toyota 7-seater business van, and thoroughly figured out the path for Chinese children to study in middle school and university in the Philippines.**
+
+If you have any questions about insurance, psychology, travel, study abroad in the Philippines, charter tours in the Manila area, buying perfumes and skincare products, or anything else you'd like to discuss, feel free to ask!`;
+                return enMessage;
+            }
+        }
+
+        /**
+         * 更新链接模式的显示和按钮文本 (已修复输入框占位符)
+         */
+        function updateLinkModeUI() {
+            if (linkMode === 'zh') {
+                linkModeDisplay.textContent = '链接模式：中文 (默认) | Link Mode: Chinese (Default)';
+                toggleLinkModeButton.textContent = '切换到英文翻译 | Switch to English';
+                // 修正点：中文占位符
+                userInput.placeholder = '输入读者的问题，与小强互动...';
+                toggleLinkModeButton.classList.remove('bg-green-600');
+                toggleLinkModeButton.classList.add('bg-primary');
+            } else {
+                linkModeDisplay.textContent = '链接模式：英文翻译 | Link Mode: English Translation';
+                toggleLinkModeButton.textContent = '切换到中文 (默认) | Switch to Chinese';
+                // 修正点：英文占位符
+                userInput.placeholder = 'Ask a question to Xiaoqiang, the assistant...'; 
+                toggleLinkModeButton.classList.remove('bg-primary');
+                toggleLinkModeButton.classList.add('bg-green-600');
+            }
+            localStorage.setItem('linkMode', linkMode);
+        }
+
+        /**
+         * 切换链接模式
+         */
+        function toggleLinkMode() {
+            linkMode = linkMode === 'zh' ? 'en' : 'zh';
+            updateLinkModeUI();
+            // 清除旧的推荐卡片
+            const recCards = document.querySelectorAll('.recommendation-card');
+            recCards.forEach(card => card.remove());
+        }
+
+        /**
+         * 初始化或重置应用状态
+         */
+        function initializeApp() {
+            // 检查 mockArticles 是否加载成功
+            if (typeof mockArticles === 'undefined') {
+                 showInitError();
+                 return;
+            }
+
+            chatContainer.innerHTML = '';
+            chatHistory = [];
+            
+            // 首次启动时，显示助理的欢迎语 (默认为中文)
+            const initialMessage = getInitialMessage('zh');
+            displayMessage(initialMessage, 'model');
+            
+            // 动态更新所有 UI 提示
+            updateLinkModeUI();
+            sendButton.disabled = false;
+        }
+
+
+        // --- 5. 其他辅助函数 (保持不变) ---
+        function showInitError() {
+            chatContainer.innerHTML = `
+                <div class="text-center text-red-500 p-4 bg-red-50 rounded-lg">
+                    <p class="font-bold mb-2">系统初始化失败！| System Initialization Failed!</p>
+                    <p class="text-sm">错误：未找到 <strong>articles.js</strong> 文件中的 mockArticles 数据。| Error: mockArticles data not found.</p>
+                    <p class="text-xs mt-1">请确保 'articles.js' 文件与 'index.html' 在同一目录。| Ensure 'articles.js' is in the same directory as 'index.html'.</p>
+                </div>
+            `;
+            sendButton.disabled = true;
+        }
+        function getProcessedUrl(originalUrl) {
+            if (linkMode === 'en') {
+                const encodedUrl = encodeURIComponent(originalUrl);
+                // 使用 Google Translate 进行链接翻译
+                return `https://translate.google.com/translate?sl=zh-CN&tl=en&u=${encodedUrl}`;
+            }
+            return originalUrl;
+        }
+        function showStatusModal(message) {
+            const modalId = 'statusModal';
+            let modal = document.getElementById(modalId);
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = modalId;
+                modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none';
+                modal.innerHTML = `
+                    <div class="bg-white p-6 rounded-xl shadow-2xl transform scale-95 transition-transform duration-300">
+                        <p id="modalMessage" class="text-lg font-semibold text-gray-800 mb-4"></p>
+                        <button onclick="document.getElementById('${modalId}').classList.remove('opacity-100', 'pointer-events-auto'); document.getElementById('${modalId}').classList.add('opacity-0', 'pointer-events-none');" class="w-full py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition duration-150">
+                            确定 | OK
+                        </button>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+            document.getElementById('modalMessage').textContent = message;
+            setTimeout(() => {
+                modal.classList.add('opacity-100', 'pointer-events-auto');
+            }, 10);
+        }
+        function copyArticleLink(url, id) {
+            const textarea = document.createElement('textarea');
+            textarea.value = url;
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            let success = false;
+            try {
+                success = document.execCommand('copy');
+            } catch (err) {
+                console.error('Copy failed:', err);
+            }
+            document.body.removeChild(textarea);
+
+            const statusText = success ? `已复制文章 ${id} 的链接！| Link for Article ${id} copied!` : '复制失败，请手动复制。| Copy failed, please copy manually.';
+            showStatusModal(statusText); 
+        }
+        function showConfirmModal(message, onConfirmCallback) {
+            const modalId = 'confirmModal';
+            let modal = document.getElementById(modalId);
+            
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = modalId;
+                modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none';
+                modal.innerHTML = `
+                    <div class="bg-white p-6 rounded-lg shadow-2xl w-80 transform scale-95 transition-transform duration-300">
+                        <p id="confirmModalMessage" class="text-lg font-semibold text-gray-800 mb-6"></p>
+                        <div class="flex justify-end space-x-3">
+                            <button id="confirmCancelBtn" class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition duration-150">
+                                取消 | Cancel
+                            </button>
+                            <button id="confirmOkBtn" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-150">
+                                确定重置 | Confirm Reset
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+
+            document.getElementById('confirmModalMessage').textContent = message;
+
+            const closeModal = () => {
+                modal.classList.remove('opacity-100', 'pointer-events-auto');
+                modal.classList.add('opacity-0', 'pointer-events-none');
+            };
+
+            const okBtn = document.getElementById('confirmOkBtn');
+            const cancelBtn = document.getElementById('confirmCancelBtn');
+            
+            // 移除旧的事件监听器，确保不会重复执行
+            const oldOkBtn = okBtn.cloneNode(true);
+            okBtn.parentNode.replaceChild(oldOkBtn, okBtn);
+            const newOkBtn = oldOkBtn;
+
+            const oldCancelBtn = cancelBtn.cloneNode(true);
+            cancelBtn.parentNode.replaceChild(oldCancelBtn, cancelBtn);
+            const newCancelBtn = oldCancelBtn;
+
+
+            const newOkListener = () => {
+                closeModal();
+                onConfirmCallback();
+            };
+
+            const newCancelListener = () => {
+                closeModal();
+            };
+
+            newOkBtn.addEventListener('click', newOkListener);
+            newCancelBtn.addEventListener('click', newCancelListener);
+
+
+            setTimeout(() => {
+                modal.classList.add('opacity-100', 'pointer-events-auto');
+            }, 10);
+        }
+
 
         /**
          * 在聊天界面显示消息
@@ -329,7 +514,73 @@ My master, Teacher Mehdi, will get back to you as soon as possible.
         }
 
 
-// ... (detectInputLanguage 和 checkBusinessKeyword 保持不变)
+        /**
+         * 确定用户输入的语言
+         */
+        function detectInputLanguage(text) {
+            const chineseChars = text.match(/[\u4e00-\u9fa5]/g)?.length || 0;
+            const englishLetters = text.match(/[a-zA-Z]/g)?.length || 0;
+            
+            if (chineseChars > 0) {
+                return 'zh';
+            }
+            
+            if (englishLetters > 0) {
+                return 'en';
+            }
+            
+            return 'zh';
+        }
+        
+        /**
+         * 业务关键词检测函数
+         */
+        function checkBusinessKeyword(text) {
+            const lowerText = text.toLowerCase();
+            
+            // --- 购买/价格/库存 关键词列表 (优先级最高) ---
+            const buyPriceKeywords = ['价格', '多少钱', '怎么买', '下单', '库存', '有没有货', 'price', 'how much', 'buy', 'order', 'stock', 'purchase', 'available'];
+            
+            // 1. 联系/微信关键词 (保持高优先级)
+            if (lowerText.includes('联系') || lowerText.includes('contact') || lowerText.includes('微信') || lowerText.includes('wechat') || lowerText.includes('reach out')) {
+                return 'contact';
+            }
+
+            // 2. 购买/价格关键词 (赋予高优先级)
+            const isBuyPriceQuery = buyPriceKeywords.some(keyword => lowerText.includes(keyword));
+            if (isBuyPriceQuery) {
+                return 'buy_price'; // 返回引导联系真人的硬编码类型
+            }
+            
+            // 3. 香水关键词 (现在仅用于通用业务描述)
+            if (lowerText.includes('香水') || lowerText.includes('perfume') || lowerText.includes('scent') || lowerText.includes('shop') || lowerText.includes('护肤品') || lowerText.includes('skincare')) {
+                
+                // 排除性关键词：用于区分通用介绍和智能回复
+                // 包含 "Dior" 或 "哪种香水" 等具体名词时，应该走 AI 智能回复 (返回 null)
+                const specificKeywords = ['哪种', '什么牌子', '牌子', '品牌', '型号', 'type', 'brand', 'model', 'dior', 'chanel', 'gucci', 'versace', 'hermes', 'bvlgari']; 
+                
+                const isSpecificBrandQuery = specificKeywords.some(keyword => lowerText.includes(keyword));
+
+                // 如果包含香水通用词，但不包含具体的品牌/型号，也不包含购买/价格词，则返回通用介绍。
+                if (!isSpecificBrandQuery) {
+                     return 'perfume';
+                }
+                
+                // 如果包含香水通用词，但同时包含具体的品牌/型号，则返回 null，走 AI 智能回复。
+            }
+            
+            // 4. 留学咨询关键词
+            if ((lowerText.includes('留学') || lowerText.includes('咨询') || lowerText.includes('study') || lowerText.includes('abroad') || lowerText.includes('consult') || lowerText.includes('学校') || lowerText.includes('中学') || lowerText.includes('大学') || lowerText.includes('school'))) {
+                return 'study';
+            }
+            
+            // 5. 包车/租车关键词
+            if ((lowerText.includes('包车') || lowerText.includes('租车') || lowerText.includes('charter') || lowerText.includes('van') || lowerText.includes('car service') || lowerText.includes('丰田') || lowerText.includes('toyota') || lowerText.includes('游') || lowerText.includes('玩'))) {
+                return 'charter';
+            }
+            
+            return null; // 没有匹配到业务关键词，或者是一个需要智能回复的具体业务询问
+        }
 
         // --- 修复后的完整 sendMessage 函数 (已包含 API 调用逻辑) ---
         async function sendMessage() {
@@ -351,10 +602,15 @@ My master, Teacher Mehdi, will get back to you as soon as possible.
                 // 使用检测到的语言返回硬编码的业务信息
                 const businessMessage = businessDetails[lang][businessKey]; 
                 
-                // ⚠️ 修正点：不再手动拼接图片，直接发送 businessMessage 即可
-                // 因为 businessDetails 中已经包含了图片（HTML 格式）
-                displayMessage(businessMessage, 'model');
-
+                // ⚠️ 如果触发了 buy_price 或 contact，还需要手动添加二维码图片（假设图片文件存在）
+                if (businessKey === 'contact' || businessKey === 'buy_price') {
+                    // 注意：这里我们使用 HTML 方式来渲染二维码，以确保其在 Markdown 环境下正确显示
+                    const messageWithImage = businessMessage + `<p class="mt-4"><img src="wechat_qr.jpg" alt="WeChat QR Code" class="max-w-xs mx-auto"></p>`;
+                    displayMessage(messageWithImage, 'model');
+                } else {
+                     displayMessage(businessMessage, 'model');
+                }
+                
                 // 记录历史并恢复按钮
                 chatHistory.push({ role: "user", parts: [{ text: text }] });
                 userInput.disabled = false;
@@ -364,23 +620,156 @@ My master, Teacher Mehdi, will get back to you as soon as possible.
             }
             
             // 4. 实时智能回复 (调用 Gemini API)
-            // ... (其余逻辑保持不变)
             
-            // ... (省略了 API 调用和加载动画部分，因为它与问题无关)
+            // A. 显示加载指示器
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.className = 'chat-message mb-4 p-3 model-message mr-auto rounded-lg max-w-[85%] shadow-md';
+            loadingIndicator.innerHTML = '<div class="flex items-center space-x-1"><span class="text-gray-500">思考中</span><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></div>';
+            chatContainer.appendChild(loadingIndicator);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
 
+            // B. 准备 API 调用
+            // 将用户消息添加到历史记录，准备发送
+            chatHistory.push({ role: "user", parts: [{ text: text }] });
+            
+            let articleList = '';
+            if (typeof mockArticles !== 'undefined') {
+                // 确保 mockArticles 可用
+                articleList = mockArticles.map(a => 
+                    `ID: ${a.id}, 标题: ${a.title}, 侧重点/摘要: ${a.summary}`
+                ).join('\n');
+            } else {
+                 articleList = '文章列表不可用，请勿推荐。';
+            }
+
+            // System Prompt：强调双语名称和语言一致性
+            const systemPrompt = `
+                你是一个幽默、亲切、爱互动的公众号助理。请注意你的双语名称设定：
+                - **中文语境下，你的名字是“小小强”。**
+                - **英文语境下，你的名字是“Mehdi”。**
+
+                你的主要任务是：
+                1. **扮演作者分身：** 你是作者本人（一位保险专家），过去在广东、北京生活，但从2023年开始，因为陪孩子读书，现定居在菲律宾。你必须主动、自然地将“北京生活”、“心理学”、“菲律宾陪读经历”、“跨国生活感受”等真实故事融入聊天中。
+                
+                **【🚨 关键指令：语言与名称一致性 🚨】**
+                2. **语言与名称保持一致：** **你必须严格使用客户输入的语言进行回复。同时，在回复中请使用对应语言的名字。** (YOU MUST strictly reply in the language the user uses, and use the corresponding name: "小小强" for Chinese, "Mehdi" for English.)
+                
+                3. **精准文章推荐：** 当读者的话题与保险、心理、菲律宾生活、旅游或留学相关时，你必须从下面的“文章列表”中选择一篇最精准的文章进行推荐。
+                4. **推荐格式：** 必须在回复的最后一行以严格的格式输出推荐ID，格式为：[RECOMMEND_ID: Axxx]，其中 Axxx 是文章ID。如果没有合适的文章，则回复[RECOMMEND_ID: NONE]。
+                5. **联系主人：** 如果有人想联系作者本身，请指引他到微信公众号“小强的精彩世界”去订阅和留言，留下他的联系方式，作者会联系他。
+                6. **注意：** 仅在客户未提及“香水”、“留学”、“包车”或“联系”等业务关键词时，才使用此模型回复。否则，程序将直接回复硬编码的业务详情。
+
+                --- 文章列表（用于推荐，请勿直接发送给用户）---
+                ${articleList}
+            `;
+            
+            // PAYLOAD 结构
+            const payload = {
+                contents: chatHistory,
+                config: {
+                    systemInstruction: systemPrompt
+                }
+            };
+
+            let modelReplyText = lang === 'en' ? "Sorry, the system is experiencing a temporary issue." : "抱歉，系统暂时出了点小问题。";
+            let recommendedArticle = null;
+            let fullModelResponse = null;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorJson = await response.json();
+                    const errorMessage = errorJson.error?.message || response.statusText;
+                    modelReplyText = lang === 'en' 
+                        ? `API Request Failed (Status ${response.status}): ${errorMessage}`
+                        : `API请求失败 (状态码 ${response.status})。错误信息: ${errorMessage}`;
+                } else {
+                    const result = await response.json();
+                    
+                    // 确保有返回结果
+                    fullModelResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (!fullModelResponse) {
+                        modelReplyText = lang === 'en' 
+                            ? "I'm sorry, the model did not provide a coherent response." 
+                            : "抱歉，模型未返回有效的回复。";
+                    } else {
+                        // 提取推荐ID
+                        const match = fullModelResponse.match(/\[RECOMMEND_ID: (A\d{3}|NONE)\]/i);
+                        const recId = match ? match[1] : 'NONE';
+
+                        // 清理回复文本，移除推荐标记
+                        modelReplyText = fullModelResponse.replace(/\[RECOMMEND_ID: (A\d{3}|NONE)\]/i, '').trim();
+
+                        if (recId !== 'NONE') {
+                            // 查找文章
+                            if (typeof mockArticles !== 'undefined') {
+                                recommendedArticle = mockArticles.find(a => a.id === recId);
+                            }
+                            
+                            // 如果推荐了不存在的文章，可以加上提示
+                            if (!recommendedArticle) {
+                                modelReplyText += (lang === 'en' ? '\n\n(System Note: Recommended article ID is invalid.)' : '\n\n(系统提示: 推荐的文章ID无效。)');
+                            }
+                        }
+                        // 将完整的模型回复（包含 ID 标记）加入历史记录，以保持上下文的准确性
+                        chatHistory.push({ role: "model", parts: [{ text: fullModelResponse }] });
+                    }
+                }
+
+            } catch (error) {
+                console.error("Critical error in sendMessage:", error);
+                modelReplyText = lang === 'en' 
+                    ? `A critical error occurred: ${error.message}`
+                    : `致命错误发生：${error.message}`;
+                // API 错误时不将错误消息加入历史，避免影响后续对话
+                chatHistory.pop(); // 移除最后一次 user 消息
+            }
+            
             // C. 移除加载提示并显示最终回复
-            // loadingIndicator.remove(); // 实际代码中需要保留
-            // displayMessage(modelReplyText, 'model', recommendedArticle); // 实际代码中需要保留
+            loadingIndicator.remove();
+            displayMessage(modelReplyText, 'model', recommendedArticle);
             
             // D. 恢复输入
-            // userInput.disabled = false; // 实际代码中需要保留
-            // sendButton.disabled = false; // 实际代码中需要保留
-            // userInput.focus(); // 实际代码中需要保留
+            userInput.disabled = false;
+            sendButton.disabled = false;
+            userInput.focus();
         }
 
 
         // --- 6. Event Listeners & Initialization ---
-// ... (事件监听和初始化逻辑保持不变)
+
+        sendButton.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !sendButton.disabled) {
+                sendMessage();
+            }
+        });
+        // 确保输入框内容变化时，按钮启用/禁用状态正确
+        userInput.addEventListener('input', () => {
+            sendButton.disabled = userInput.value.trim() === '';
+        });
+
+        toggleLinkModeButton.addEventListener('click', toggleLinkMode);
+        
+        resetButton.addEventListener('click', () => {
+            showConfirmModal("确定要重置对话吗？重置后小强将忘记所有之前的聊天内容。| Are you sure you want to reset the conversation? Xiaoqiang will forget all previous chat history.", initializeApp);
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 延迟执行以确保所有的 DOM 和外部脚本都已加载
+            setTimeout(() => {
+                if (typeof mockArticles !== 'undefined') {
+                    initializeApp();
+                } else {
+                    showInitError(); 
+                }
+            }, 100);
+        });
     </script>
     
 </body>

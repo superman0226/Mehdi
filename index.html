@@ -215,7 +215,7 @@
 
 主人小强老师将会在看到信息后尽快回复您。
 
-![微信二维码](images/wechat_qr.jpg)
+![微信二维码](wechat_qr.jpg)
 
 **提示：** 如果您是咨询留学、香水或包车业务，请在添加后告知，以便我们更高效地为您服务。
                 `
@@ -268,7 +268,7 @@ Great! You want to reach my master, Teacher Mehdi.
 
 My master, Teacher Mehdi, will get back to you as soon as possible.
 
-![WeChat QR Code](images/wechat_qr.jpg)
+![WeChat QR Code](wechat_qr.jpg)
 
 **Note:** If you are inquiring about study abroad, perfume, or charter services, please mention it after adding to help us serve you more efficiently.
                 `
@@ -605,7 +605,7 @@ If you have any questions about insurance, psychology, travel, study abroad in t
                 // ⚠️ 如果触发了 buy_price 或 contact，还需要手动添加二维码图片（假设图片文件存在）
                 if (businessKey === 'contact' || businessKey === 'buy_price') {
                     // 注意：这里我们使用 HTML 方式来渲染二维码，以确保其在 Markdown 环境下正确显示
-                    const messageWithImage = businessMessage + `<p class="mt-4"><img src="images/wechat_qr.jpg" alt="WeChat QR Code" class="max-w-xs mx-auto"></p>`;
+                    const messageWithImage = businessMessage + `<p class="mt-4"><img src="wechat_qr.jpg" alt="WeChat QR Code" class="max-w-xs mx-auto"></p>`;
                     displayMessage(messageWithImage, 'model');
                 } else {
                      displayMessage(businessMessage, 'model');

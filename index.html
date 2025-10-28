@@ -14,50 +14,47 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: '#3b82f6', // 蓝色
-                        accent: '#10b981',  // 绿色
-                    },
-                    fontFamily: {
-                        // 确保中文字体优先，以提高可读性
-                        sans: ['Inter', 'Microsoft YaHei', 'SimHei', 'sans-serif'],
-                    },
-                },
-            },
+                        primary: '#1070ff', // 小强的主题色：蓝色
+                        accent: '#10b981',  // 强调色：绿色
+                    }
+                }
+            }
         }
     </script>
     <style>
-        /* 引入Inter字体 */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-
-        /* =================================================== */
-        /* 标题响应式样式 (中文大，英文小) */
-        /* =================================================== */
-        /* 手机默认样式 */
-        .bilingual-header .chinese-text {
-            font-size: 1.5rem; /* 增大中文，text-2xl */
-            font-weight: 800; /* 加粗中文 */
-            line-height: 1.2;
-            color: #3b82f6; /* 使用 primary 颜色，使其突出 */
+        /* 加载点的动画 */
+        .loading-dot {
+            width: 4px;
+            height: 4px;
+            background-color: #9ca3af;
+            border-radius: 50%;
+            display: inline-block;
+            animation: bounce 1.4s infinite ease-in-out both;
         }
-        .bilingual-header .english-text {
-            font-size: 1rem; /* 减小英文，text-base */
-            font-weight: 500; /* 减轻英文的粗细 */
-            color: #6b7280; /* 使用灰色，使其次要 */
-            margin-top: 4px;
+        .loading-dot:nth-child(2) {
+            animation-delay: -0.32s;
+        }
+        .loading-dot:nth-child(3) {
+            animation-delay: -0.16s;
+        }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
         }
 
-        /* 电脑/平板适配 (md: 768px 以上) */
-        @media (min-width: 768px) {
-            .bilingual-header .chinese-text {
-                font-size: 2rem; /* md:text-3xl，PC端进一步放大中文 */
-            }
-            .bilingual-header .english-text {
-                font-size: 1.25rem; /* md:text-xl，PC端进一步减小英文 */
-            }
+        /* 聊天气泡样式 */
+        .user-message {
+            background-color: #e5e7eb; /* 浅灰色 */
+            color: #1f2937;
+            border-bottom-right-radius: 4px;
         }
-        /* =================================================== */
+        .model-message {
+            background-color: #f3f4f6; /* 更浅的灰色 */
+            color: #1f2937;
+            border-bottom-left-radius: 4px;
+        }
 
-        /* 自定义滚动条样式 */
+        /* 滚动条美化 */
         .chat-container::-webkit-scrollbar {
             width: 8px;
         }
@@ -65,55 +62,49 @@
             background-color: #d1d5db;
             border-radius: 4px;
         }
-        /* 聊天气泡样式 */
-        .user-message {
-            background-color: #dbeafe; /* 浅蓝色 */
+        .chat-container::-webkit-scrollbar-track {
+            background: #f9fafb;
         }
-        .model-message {
-            background-color: #f3f4f6; /* 浅灰色 */
-        }
-        /* 动画效果 */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .chat-message {
-            animation: fadeIn 0.3s ease-out;
-        }
-        /* 确保图片在聊天气泡内能自适应 */
-        .model-message img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-            margin-top: 10px;
-        }
-        /* 修复：添加加载动画样式 */
-        .loading-dot {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background-color: #9ca3af;
-            border-radius: 50%;
-            margin: 0 2px;
-            animation: loading 1.4s infinite ease-in-out both;
-        }
-        .loading-dot:nth-child(1) { animation-delay: -0.32s; }
-        .loading-dot:nth-child(2) { animation-delay: -0.16s; }
-        .loading-dot:nth-child(3) { animation-delay: 0s; }
 
-        @keyframes loading {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1.0); }
+        /* Markdown 样式 */
+        .chat-message h1, .chat-message h2, .chat-message h3 {
+            font-weight: bold;
+            margin-top: 0.5em;
+            margin-bottom: 0.5em;
+            color: #1070ff; /* Primary color */
         }
-         /* 修正 Markdown 列表和段落的间距 */
-        .model-message ul, .model-message ol {
-            margin-left: 1.25rem;
-            list-style-type: disc;
+        .chat-message p {
+            margin-bottom: 0.5em;
         }
-        .model-message p {
-             margin-top: 0.5rem;
-             margin-bottom: 0.5rem;
+        .chat-message a {
+            color: #10b981; /* Accent color */
+            text-decoration: underline;
         }
+        .chat-message ul, .chat-message ol {
+            padding-left: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        .chat-message code {
+            background-color: #e5e7eb;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .chat-message pre {
+            background-color: #374151;
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 0.5em 0;
+        }
+        .chat-message img {
+             max-width: 100%;
+             height: auto;
+             border-radius: 8px;
+             margin-top: 10px;
+        }
+        
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen font-sans antialiased">
@@ -158,7 +149,7 @@
         </div>
 
         <div class="bg-white p-4 rounded-xl shadow-lg flex items-center">
-            <input type="text" id="userInput" class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition duration-150 mr-3">
+            <input type="text" id="userInput" class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition duration-150 mr-3" placeholder="输入读者的问题，与小强互动...">
             <button id="sendButton" class="p-3 bg-accent text-white rounded-lg hover:bg-green-600 transition duration-150 shadow-md flex items-center justify-center disabled:opacity-50" disabled>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
                     <path d="M3.478 2.405a.75.75 0 0 0-.926.94l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.547 60.547 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.547 60.547 0 0 0 3.478 2.405Z" />
@@ -167,10 +158,10 @@
         </div>
     </div>
 
-    <script src="articles.js"></script>
+    <script src="articles.js"></script> 
 
     <script>
-        // 【优化点：新增功能】 设置历史记录的最大长度 (N 轮对话 = 2 * N 条消息)
+        // 设置历史记录的最大长度 (N 轮对话 = 2 * N 条消息)
         const MAX_HISTORY_MESSAGES = 10; 
         
         // --- 1. State Variables ---
@@ -190,7 +181,6 @@
         const toggleLinkModeButton = document.getElementById('toggleLinkMode');
         const linkModeDisplay = document.getElementById('linkModeDisplay');
         const headerTitleContainer = document.getElementById('headerTitleContainer'); 
-        // 【优化点：新增功能】 注册 Modal DOM
         const articleModal = document.getElementById('articleModal');
         const modalArticleTitle = document.getElementById('modalArticleTitle');
         const modalArticleSummary = document.getElementById('modalArticleSummary');
@@ -198,7 +188,6 @@
 
 
         // --- 3. 业务详情数据 (硬编码，用于关键词触发) ---
-        // (保持不变)
         const businessDetails = {
             zh: {
                 // 通用香水业务介绍 (用于触发“香水”等通用词时)
@@ -543,7 +532,7 @@ If you have questions about **insurance, psychology, travel, study abroad in the
         }
         
         /**
-         * 业务关键词检测函数 (【最新优化】: 区分通用咨询和硬性推广)
+         * 业务关键词检测函数
          */
         function checkBusinessKeyword(text) {
             const lowerText = text.toLowerCase();
@@ -626,7 +615,8 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                 
                 // 如果触发了 buy_price 或 contact，需要手动添加二维码图片
                 if (businessKey === 'contact' || businessKey === 'buy_price') {
-                    const messageWithImage = businessMessage + `<p class="mt-4"><img src="wechat_qr.jpg" alt="WeChat QR Code" class="max-w-xs mx-auto"></p>`;
+                    // ⚠️ 假设 wechat_qr.jpg 存在于当前目录
+                    const messageWithImage = businessMessage + `<p class="mt-4 text-center"><img src="wechat_qr.jpg" alt="WeChat QR Code" class="max-w-[150px] mx-auto"></p>`;
                     displayMessage(messageWithImage, 'model');
                 } else {
                      displayMessage(businessMessage, 'model');
@@ -693,10 +683,13 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                 ${articleList}
             `;
             
-            // PAYLOAD 结构 (【此处为修复点】：移除 config，systemInstruction 作为顶级参数)
+            // PAYLOAD 结构 (【最终修正】：将 systemInstruction 作为顶级参数)
             const payload = {
                 contents: limitedHistory, 
                 systemInstruction: systemPrompt 
+                // generationConfig: {
+                //    temperature: 0.8 // 可选，如果需要进一步调整模型行为，可在此处添加
+                // }
             };
 
             let modelReplyText = lang === 'en' ? "Sorry, the system is experiencing a temporary issue." : "抱歉，系统暂时出了点小问题。";
@@ -718,6 +711,7 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                     modelReplyText = lang === 'en' 
                         ? `API Request Failed (Status ${response.status}). Error: ${errorMessage}`
                         : `API请求失败 (状态码 ${response.status})。错误信息: ${errorMessage}。请尝试重置对话或稍后再试。`;
+                    console.error('API Error:', errorJson); // 打印详细错误到控制台
                 } else {
                     const result = await response.json();
                     
@@ -760,6 +754,7 @@ If you have questions about **insurance, psychology, travel, study abroad in the
             
             // C. 移除加载提示并显示最终回复
             if (loadingIndicator) {
+                // 避免在 chatContainer 已经滚动到底部时，将加载指示器单独移除。改为原地更新。
                 loadingIndicator.id = ''; 
                 loadingIndicator.innerHTML = ''; 
                 loadingIndicator.className = `chat-message mb-4 p-3 model-message mr-auto rounded-lg max-w-[85%] shadow-md`;

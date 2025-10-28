@@ -105,29 +105,18 @@
             0%, 80%, 100% { transform: scale(0); }
             40% { transform: scale(1.0); }
         }
+        /* 修正 Markdown 列表和段落的间距 */
+        .model-message ul, .model-message ol {
+            margin-left: 1.25rem;
+            list-style-type: disc;
+        }
+        .model-message p {
+             margin-top: 0.5rem;
+             margin-bottom: 0.5rem;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen font-sans antialiased">
-
-    <div id="confirmModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-sm">
-            <p id="confirmMessage" class="text-gray-700 mb-4"></p>
-            <div class="flex justify-end space-x-3">
-                <button id="confirmCancel" class="py-2 px-4 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">取消 | Cancel</button>
-                <button id="confirmConfirm" class="py-2 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600">确定 | Confirm</button>
-            </div>
-        </div>
-    </div>
-    
-    <div id="statusModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-sm">
-            <p id="statusMessage" class="text-gray-700 mb-4"></p>
-            <div class="flex justify-end">
-                <button id="statusClose" class="py-2 px-4 bg-primary text-white rounded-lg hover:bg-blue-600">关闭 | Close</button>
-            </div>
-        </div>
-    </div>
-
 
     <div class="max-w-xl mx-auto p-4 md:p-6 flex flex-col h-screen">
         
@@ -154,7 +143,7 @@
             </div>
         
         <div id="articleModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
-            <div class="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-md transform scale-95 transition-transform duration-300">
+            <div class="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-md transform scale-95 transition-transform duration-300" onclick="event.stopPropagation()">
                 <h2 id="modalArticleTitle" class="text-xl font-bold text-primary mb-3"></h2>
                 <div id="modalArticleSummary" class="text-gray-700 max-h-60 overflow-y-auto mb-4"></div>
                 <div class="flex justify-between items-center">
@@ -181,7 +170,7 @@
     <script src="articles.js"></script>
 
     <script>
-        // 【配置常量】 历史记录的最大长度 (N 轮对话 = 2 * N 条消息)
+        // 【优化点：新增功能】 设置历史记录的最大长度 (N 轮对话 = 2 * N 条消息)
         const MAX_HISTORY_MESSAGES = 10; 
         
         // --- 1. State Variables ---
@@ -190,11 +179,10 @@
         const modelName = 'gemini-2.5-flash-preview-09-2025';
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
         
-        // chatHistory 应该是一个数组，包含 system prompt 和所有的 user/model 消息
         let chatHistory = []; 
         let linkMode = localStorage.getItem('linkMode') || 'zh';
 
-        // --- 2. DOM Elements (保持原样) ---
+        // --- 2. DOM Elements ---
         const chatContainer = document.getElementById('chatContainer');
         const userInput = document.getElementById('userInput');
         const sendButton = document.getElementById('sendButton');
@@ -202,12 +190,15 @@
         const toggleLinkModeButton = document.getElementById('toggleLinkMode');
         const linkModeDisplay = document.getElementById('linkModeDisplay');
         const headerTitleContainer = document.getElementById('headerTitleContainer'); 
+        // 【优化点：新增功能】 注册 Modal DOM
         const articleModal = document.getElementById('articleModal');
         const modalArticleTitle = document.getElementById('modalArticleTitle');
         const modalArticleSummary = document.getElementById('modalArticleSummary');
         const modalArticleLink = document.getElementById('modalArticleLink');
 
-        // --- 3. 业务详情数据 (保持原样) ---
+
+        // --- 3. 业务详情数据 (硬编码，用于关键词触发) ---
+        // (保持不变，已在您的上一轮修复中移除了重复的二维码 Markdown)
         const businessDetails = {
             zh: {
                 // 通用香水业务介绍 (用于触发“香水”等通用词时)
@@ -322,6 +313,7 @@ My master, Teacher Mehdi, will get back to you as soon as possible.
          */
         function getInitialMessage(lang) {
             if (lang === 'zh') {
+                // 【优化点：系统提示词】 优化欢迎语，更符合“小小强”的亲切感
                 const zhMessage = `你好啊！我是你的公众号小助理**小小强**。我的主人**小强老师**是一位高学历、高知识结构、有广东、北京等多地丰富经历生活、热爱公益，曾被**中央电视台《人物》专栏**报道过的有志人士。他通晓计算机、信息技术、企业管理（10年以上）、人寿保险（12年以上）、心理学（研究血型与性格相关20年），10多年以来撰写了400多篇文章。**2023年以后带娃来菲律宾留学并旅居在此**，对这里的生活、教育、旅游都非常熟悉！
 
 **我用了一年时间摸清了中国孩子在菲律宾读中学和考大学的路（包括华侨生联考），还开了香水店和包车服务。**
@@ -329,6 +321,7 @@ My master, Teacher Mehdi, will get back to you as soon as possible.
 如果您有关于**保险、心理、菲律宾旅行、留学、马尼拉包车游、买香水**等任何问题，尽管问我！我很乐意分享小强老师的精彩经历和经验。`;
                 return zhMessage;
             } else {
+                // 【优化点：系统提示词】 优化欢迎语，更符合“Mehdi”的角色
                 const enMessage = `Hello! I am your official account assistant, **Mehdi**. My master, **Teacher Mehdi**, is a highly educated, public-spirited individual who has lived in places like Guangdong and Beijing, and was even featured in **China Central Television (CCTV)'s "People" column**. He is proficient in IT, Business Management (10+ years), Life Insurance (12+ years), and Psychology. **Since 2023, he has been residing in the Philippines,** and is now very familiar with the local study, travel, and lifestyle scene!
 
 **I spent a year getting to know the path for Chinese children to study middle school and university here (including the Huqiao Entrance Exam). Plus, we run a perfume shop and a charter van service!**
@@ -337,291 +330,6 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                 return enMessage;
             }
         }
-
-        // --- 5. 核心逻辑函数 ---
-
-        /**
-         * 业务关键词检测函数 - 【核心修复区域：确保泛泛而谈走AI】
-         */
-        function checkBusinessKeyword(text) {
-            const lowerText = text.toLowerCase();
-            
-            // --- 购买/价格/库存 关键词列表 (优先级最高) ---
-            const buyPriceKeywords = ['价格', '多少钱', '怎么买', '下单', '库存', '有没有货', 'price', 'how much', 'buy', 'order', 'stock', 'purchase', 'available'];
-            
-            // 1. 联系/微信关键词 (保持高优先级)
-            if (lowerText.includes('联系') || lowerText.includes('contact') || lowerText.includes('微信') || lowerText.includes('wechat') || lowerText.includes('reach out')) {
-                return 'contact';
-            }
-
-            // 2. 购买/价格关键词 (赋予高优先级)
-            const isBuyPriceQuery = buyPriceKeywords.some(keyword => lowerText.includes(keyword));
-            if (isBuyPriceQuery) {
-                return 'buy_price'; // 返回引导联系真人的硬编码类型
-            }
-            
-            // 3. 香水关键词逻辑
-            if (lowerText.includes('香水') || lowerText.includes('perfume') || lowerText.includes('scent') || lowerText.includes('shop') || lowerText.includes('护肤品') || lowerText.includes('skincare')) {
-                
-                // 排除性关键词：用于区分通用介绍和智能回复 (包含具体品牌/型号时，走 AI)
-                const specificKeywords = ['哪种', '什么牌子', '牌子', '品牌', '型号', 'type', 'brand', 'model', 'dior', 'chanel', 'gucci', 'versace', 'hermes', 'bvlgari']; 
-                
-                const isSpecificBrandQuery = specificKeywords.some(keyword => lowerText.includes(keyword));
-
-                // 只有在是通用香水查询，且不包含具体品牌/型号时，才返回 'perfume'
-                if (!isSpecificBrandQuery) {
-                     return 'perfume';
-                }
-                
-                // 否则，返回 null，让它继续向下执行到最后的 return null，走 AI。
-                return null;
-            }
-            
-            // 4. 留学咨询关键词 【修复了泛泛而谈走AI】
-            // 匹配所有留学相关通用词
-            if ((lowerText.includes('留学') || lowerText.includes('咨询') || lowerText.includes('study') || lowerText.includes('abroad') || lowerText.includes('consult') || lowerText.includes('学校') || lowerText.includes('中学') || lowerText.includes('大学') || lowerText.includes('school'))) {
-                
-                // 排除性关键词：如果包含这些词，意味着用户只是想获取信息或聊聊，应该走 AI 智能回复。
-                const informationalKeywords = ['怎么样', '好不好', '如何', '介绍一下', '什么情况', 'what about', 'tell me about', 'experience'];
-                
-                const isInformationalQuery = informationalKeywords.some(keyword => lowerText.includes(keyword));
-
-                // 如果是泛泛而谈的问题 (如“怎么样”)，则返回 null，走 AI 智能回复。
-                if (isInformationalQuery) {
-                    return null; 
-                }
-                
-                // 如果包含留学关键词，但不是泛泛而谈，那么可能是直接咨询服务，则返回硬编码。
-                return 'study';
-            }
-            
-            // 5. 包车/租车关键词 【修复了泛泛而谈走AI】
-            if ((lowerText.includes('包车') || lowerText.includes('租车') || lowerText.includes('charter') || lowerText.includes('van') || lowerText.includes('car service') || lowerText.includes('丰田') || lowerText.includes('toyota') || lowerText.includes('游') || lowerText.includes('玩'))) {
-                
-                // 排除性关键词：如果只是问“包车好不好”或“包车怎么样”，走 AI
-                const informationalKeywords = ['怎么样', '好不好', '如何', '介绍一下', '什么情况', 'what about', 'tell me about', 'experience'];
-                const isInformationalQuery = informationalKeywords.some(keyword => lowerText.includes(keyword));
-
-                 if (isInformationalQuery) {
-                    return null; 
-                }
-                
-                return 'charter';
-            }
-            
-            return null; // 没有匹配到业务关键词，走 AI 智能回复
-        }
-
-        // --- 优化后的 sendMessage 函数 (在原代码基础上进行关键逻辑修正) ---
-        async function sendMessage() {
-            const text = userInput.value.trim();
-            if (!text) return;
-
-            // 1. UI更新 (禁用输入、显示用户消息)
-            userInput.value = '';
-            userInput.disabled = true; // 禁用输入框
-            sendButton.disabled = true;
-            displayMessage(text, 'user');
-
-            // 2. 业务关键词检测
-            const lang = detectInputLanguage(text);
-            const businessKey = checkBusinessKeyword(text);
-
-            // 3. 如果检测到业务关键词，直接返回硬编码的业务详情
-            if (businessKey) {
-                // 使用检测到的语言返回硬编码的业务信息
-                const businessMessage = businessDetails[lang][businessKey]; 
-                
-                // ⚠️ 如果触发了 buy_price 或 contact，还需要手动添加二维码图片
-                if (businessKey === 'contact' || businessKey === 'buy_price') {
-                    // 使用原代码的 Tailwind 样式，确保图片在气泡内居中且不超过宽度
-                    const messageWithImage = businessMessage + `<p class="mt-4"><img src="wechat_qr.jpg" alt="WeChat QR Code" class="max-w-xs mx-auto"></p>`;
-                    displayMessage(messageWithImage, 'model');
-                } else {
-                     displayMessage(businessMessage, 'model');
-                }
-                
-                // 记录历史并恢复按钮
-                chatHistory.push({ role: "user", parts: [{ text: text }] });
-                userInput.disabled = false;
-                sendButton.disabled = false;
-                userInput.focus();
-                return; // 结束函数，不调用 API
-            }
-            
-            // 4. 实时智能回复 (调用 Gemini API)
-            
-            // A. 显示加载指示器 (使用原代码的 DOM 结构)
-            const loadingIndicator = document.createElement('div');
-            loadingIndicator.className = 'chat-message mb-4 p-3 model-message mr-auto rounded-lg max-w-[85%] shadow-md';
-            loadingIndicator.id = 'loadingIndicator'; // 增加ID以便后续更新
-            loadingIndicator.innerHTML = '<div class="flex items-center space-x-1"><span class="text-gray-500">思考中</span><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></div>';
-            chatContainer.appendChild(loadingIndicator);
-            requestAnimationFrame(() => { // 再次确保平滑滚动
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            });
-
-            // B. 准备 API 调用
-            // 【优化点：限制 chatHistory 长度】
-            // 确保只发送最新的 N-1 条消息（N-1是因为system prompt是第0条，这里跳过它）
-            let limitedHistory = chatHistory.slice(1).slice(-MAX_HISTORY_MESSAGES);
-            
-            // 拼接完整的历史记录，包括 System Prompt 和最新的 User 消息
-            const contentsToSend = [
-                chatHistory[0], // System Prompt
-                ...limitedHistory,
-                { role: "user", parts: [{ text: text }] }
-            ];
-
-            let articleList = '';
-            if (typeof mockArticles !== 'undefined') {
-                articleList = mockArticles.map(a => 
-                    `ID: ${a.id}, 标题: ${a.title}, 侧重点/摘要: ${a.summary}`
-                ).join('\n');
-            } else {
-                 articleList = '文章列表不可用，请勿推荐。';
-            }
-
-            // 【优化点：系统提示词】 增强 System Prompt
-            const systemPrompt = `
-                你是一个幽默、亲切、爱互动的公众号助理。请注意你的双语名称设定：
-                - **中文语境下，你的名字是“小小强”。**
-                - **英文语境下，你的名字是“Mehdi”。**
-
-                你的主要任务是：
-                1. **扮演作者分身：** 你是作者本人（一位保险专家），过去在广东、北京生活，但从2023年开始，因为陪孩子读书，现定居在菲律宾。你**必须主动、自然地将“北京生活”、“心理学”、“菲律宾陪读经历”、“跨国生活感受”等真实故事或个人见解融入聊天中**，以增强对话的真实性和亲切感。
-                
-                **【🚨 关键指令：语言、名称与回复长度 🚨】**
-                2. **语言与名称保持一致：** **你必须严格使用客户输入的语言进行回复。同时，在回复中请使用对应语言的名字。** (YOU MUST strictly reply in the language the user uses, and use the corresponding name: "小小强" for Chinese, "Mehdi" for English.)
-                3. **限制回复长度：** **请将您的回复内容控制在 3 到 5 个自然段之间**，避免冗长。
-                
-                4. **精准文章推荐：** 当读者的话题与保险、心理、菲律宾生活、旅游或留学相关时，你必须从下面的“文章列表”中选择一篇最精准的文章进行推荐。
-                5. **推荐理由：** **你需要在回复文本中自然地提到推荐这篇文章的理由**，然后才输出推荐格式。
-                6. **推荐格式：** 必须在回复的最后一行以严格的格式输出推荐ID，格式为：[RECOMMEND_ID: Axxx]，其中 Axxx 是文章ID。如果没有合适的文章，则回复[RECOMMEND_ID: NONE]。
-                7. **联系主人：** 如果有人想联系作者本身，请指引他到微信公众号“小强的精彩世界”去订阅和留言，留下他的联系方式，作者会联系他。
-                8. **注意：** 仅在客户未提及“香水”、“留学”、“包车”或“联系”等业务关键词时，才使用此模型回复。否则，程序将直接回复硬编码的业务详情。
-
-                --- 文章列表（用于推荐，请勿直接发送给用户）---
-                ${articleList}
-            `;
-            
-            // PAYLOAD 结构
-            const payload = {
-                contents: contentsToSend, 
-                config: {
-                    systemInstruction: systemPrompt,
-                    temperature: 0.8 // 提高温度，让回复更自然
-                }
-            };
-
-            let modelReplyText = lang === 'en' ? "Sorry, the system is experiencing a temporary issue." : "抱歉，系统暂时出了点小问题。";
-            let recommendedArticle = null;
-            let fullModelResponse = null;
-            let apiError = false; 
-
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    apiError = true;
-                    const errorJson = await response.json();
-                    const errorMessage = errorJson.error?.message || response.statusText;
-                    modelReplyText = lang === 'en' 
-                        ? `API Request Failed (Status ${response.status}). Error: ${errorMessage}`
-                        : `API请求失败 (状态码 ${response.status})。错误信息: ${errorMessage}。请尝试重置对话或稍后再试。`;
-                } else {
-                    const result = await response.json();
-                    
-                    fullModelResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
-                    if (!fullModelResponse) {
-                        modelReplyText = lang === 'en' 
-                            ? "I'm sorry, the model did not provide a coherent response." 
-                            : "抱歉，模型未返回有效的回复。";
-                    } else {
-                        // 提取推荐ID
-                        const match = fullModelResponse.match(/\[RECOMMEND_ID: (A\d{3}|NONE)\]/i);
-                        const recId = match ? match[1] : 'NONE';
-
-                        // 清理回复文本，移除推荐标记
-                        modelReplyText = fullModelResponse.replace(/\[RECOMMEND_ID: (A\d{3}|NONE)\]/i, '').trim();
-
-                        if (recId !== 'NONE') {
-                            // 查找文章
-                            if (typeof mockArticles !== 'undefined') {
-                                recommendedArticle = mockArticles.find(a => a.id === recId);
-                            }
-                            
-                            // 如果推荐了不存在的文章，加上提示
-                            if (!recommendedArticle) {
-                                modelReplyText += (lang === 'en' ? '\n\n(System Note: Recommended article ID is invalid.)' : '\n\n(系统提示: 推荐的文章ID无效。)');
-                            }
-                        }
-                        
-                        // 【关键修正点】 模型回复成功后，将最新的用户消息和 AI 消息一起加入 chatHistory
-                        chatHistory.push({ role: "user", parts: [{ text: text }] });
-                        chatHistory.push({ role: "model", parts: [{ text: fullModelResponse }] });
-                    }
-                }
-
-            } catch (error) {
-                apiError = true;
-                console.error("Critical error in sendMessage:", error);
-                modelReplyText = lang === 'en' 
-                    ? `A critical network error occurred: ${error.message}`
-                    : `发生致命网络错误：${error.message}。请检查您的网络连接。`;
-            }
-            
-            // C. 移除加载提示并显示最终回复
-            if (loadingIndicator) {
-                loadingIndicator.id = ''; 
-                loadingIndicator.innerHTML = ''; 
-                loadingIndicator.className = `chat-message mb-4 p-3 model-message mr-auto rounded-lg max-w-[85%] shadow-md`;
-                
-                // 重新渲染内容（使用 displayMessage 的核心逻辑）
-                const formattedText = marked.parse(modelReplyText); 
-                loadingIndicator.innerHTML = formattedText;
-                
-                if (recommendedArticle && !apiError) { // 只有成功且有推荐文章时才显示推荐卡片
-                    const recDiv = document.createElement('div');
-                    recDiv.className = 'mt-3 pt-3 border-t border-gray-300 recommendation-card';
-                    
-                    const processedUrl = getProcessedUrl(recommendedArticle.url);
-                    const linkText = linkMode === 'en' ? '（英文翻译）' : '（中文）';
-
-                    recDiv.innerHTML = `
-                        <p class="font-bold text-gray-700 mb-1">🎯 小强推荐文章 ${linkText}:</p>
-                        <a href="${processedUrl}" target="_blank" class="block text-primary hover:text-blue-600 font-semibold truncate hover:underline mb-2">
-                            ${recommendedArticle.title}
-                        </a>
-                        <div class="flex items-center space-x-2">
-                            <span class="text-sm font-mono bg-gray-200 text-gray-700 px-2 py-1 rounded">ID: ${recommendedArticle.id}</span>
-                            <button onclick="showArticleModal('${recommendedArticle.title.replace(/'/g, "\\'")}', '${recommendedArticle.summary.replace(/'/g, "\\'")}', '${processedUrl}')" class="px-2 py-1 text-xs rounded-full bg-primary text-white hover:bg-blue-600 transition duration-150">
-                                快速预览
-                            </button>
-                            <button onclick="copyArticleLink('${processedUrl}', '${recommendedArticle.id}')" class="px-2 py-1 text-xs rounded-full bg-accent text-white hover:bg-green-600 transition duration-150">
-                                复制链接
-                            </button>
-                        </div>
-                    `;
-                    loadingIndicator.appendChild(recDiv);
-                }
-            }
-            
-            // D. 恢复输入
-            userInput.disabled = false;
-            sendButton.disabled = false;
-            userInput.focus();
-            requestAnimationFrame(() => { // 确保在恢复输入时，再次滚动到底部
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            });
-        }
-
-
-        // --- 6. Event Listeners & Initialization (保持原样) ---
 
         /**
          * 更新链接模式的显示和按钮文本 (已修复输入框占位符)
@@ -667,11 +375,7 @@ If you have questions about **insurance, psychology, travel, study abroad in the
             }
 
             chatContainer.innerHTML = '';
-            // 【修正点】 确保 system prompt 是 chatHistory 的第一条
-            chatHistory = [{ 
-                role: "system", 
-                parts: [{ text: getSystemInstruction() }] 
-            }]; 
+            chatHistory = [];
             
             // 首次启动时，显示助理的欢迎语 (默认为中文)
             const initialMessage = getInitialMessage('zh');
@@ -681,69 +385,10 @@ If you have questions about **insurance, psychology, travel, study abroad in the
             updateLinkModeUI();
             sendButton.disabled = false;
         }
-        
-        // 【新增辅助函数】 确保 system prompt 在每次初始化时都能获取到最新的
-        function getSystemInstruction() {
-            // 这是一个精简版，因为完整的 prompt 逻辑已经写在 sendMessage 中
-            return `你是一个专业的菲律宾生活和商业咨询 AI 助手，扮演“小强老师”的角色。`; 
-        }
-
-        // --- 其他辅助函数 (保持原样) ---
-        function showInitError() { 
-            const errorText = linkMode === 'zh' 
-                ? "初始化失败：未找到文章数据 (articles.js)。请确保文件已正确加载。"
-                : "Initialization failed: Article data (articles.js) not found. Please ensure the file is loaded correctly.";
-            displayMessage(errorText, 'model');
-            sendButton.disabled = true;
-        }
-        
-        function getProcessedUrl(originalUrl) { 
-            if (linkMode === 'en') {
-                const encodedUrl = encodeURIComponent(originalUrl);
-                return `https://translate.google.com/translate?sl=zh-CN&tl=en&u=${encodedUrl}`;
-            }
-            return originalUrl;
-        }
-
-        function showStatusModal(message) { 
-            const statusModal = document.getElementById('statusModal');
-            const statusMessage = document.getElementById('statusMessage');
-            statusMessage.textContent = message;
-            statusModal.classList.remove('hidden');
-        }
-
-        function copyArticleLink(url, id) { 
-            navigator.clipboard.writeText(url).then(() => {
-                showStatusModal(`文章链接 (ID: ${id}) 已复制到剪贴板。| Article link (ID: ${id}) copied to clipboard.`);
-            }).catch(err => {
-                showStatusModal(`复制失败：${err} | Copy failed: ${err}`);
-            });
-        }
-        
-        function showConfirmModal(message, onConfirmCallback) {
-            const confirmModal = document.getElementById('confirmModal');
-            document.getElementById('confirmMessage').textContent = message;
-            confirmModal.classList.remove('hidden');
-
-            const confirmHandler = () => {
-                onConfirmCallback();
-                confirmModal.classList.add('hidden');
-                document.getElementById('confirmConfirm').removeEventListener('click', confirmHandler);
-                document.getElementById('confirmCancel').removeEventListener('click', cancelHandler);
-            };
-
-            const cancelHandler = () => {
-                confirmModal.classList.add('hidden');
-                document.getElementById('confirmConfirm').removeEventListener('click', confirmHandler);
-                document.getElementById('confirmCancel').removeEventListener('click', cancelHandler);
-            };
-
-            document.getElementById('confirmConfirm').onclick = confirmHandler;
-            document.getElementById('confirmCancel').onclick = cancelHandler;
-        }
 
         // 【优化点：新增功能】 新增文章预览Modal的关闭函数
         function closeArticleModal() {
+            // 确保 Modal 在点击遮罩层外部时关闭
             articleModal.classList.remove('opacity-100', 'pointer-events-auto');
             articleModal.classList.add('opacity-0', 'pointer-events-none');
         }
@@ -751,7 +396,7 @@ If you have questions about **insurance, psychology, travel, study abroad in the
         // 【优化点：新增功能】 新增文章预览Modal的显示函数
         function showArticleModal(title, summary, url) {
             modalArticleTitle.textContent = title;
-            // 确保 summary 在显示时被解析为 HTML
+            // ⚠️ 使用 marked.parse 解析 summary，处理 Markdown 格式
             modalArticleSummary.innerHTML = marked.parse(summary); 
             modalArticleLink.href = url;
             
@@ -766,8 +411,145 @@ If you have questions about **insurance, psychology, travel, study abroad in the
             };
         }
 
+        // --- 5. 其他辅助函数 ---
+        
         /**
-         * 确定用户输入的语言 (保持原样)
+         * 显示初始化错误（如果 articles.js 未加载）
+         */
+        function showInitError() {
+            chatContainer.innerHTML = '<div class="text-center p-6 text-red-600 font-semibold border-2 border-red-300 rounded-lg">致命错误：无法加载文章数据 (articles.js)。请检查文件路径或网络连接。</div>';
+            sendButton.disabled = true;
+            userInput.disabled = true;
+        }
+        
+        /**
+         * 处理链接，如果是英文模式则添加谷歌翻译前缀
+         */
+        function getProcessedUrl(originalUrl) {
+            if (linkMode === 'en') {
+                const encodedUrl = encodeURIComponent(originalUrl);
+                return `https://translate.google.com/translate?sl=zh-CN&tl=en&u=${encodedUrl}`;
+            }
+            return originalUrl;
+        }
+
+        /**
+         * 复制链接到剪贴板
+         */
+        function copyArticleLink(url, id) {
+             const message = linkMode === 'en' ? `Link for Article ID ${id} copied!` : `文章ID ${id}的链接已复制！`;
+             navigator.clipboard.writeText(url).then(() => {
+                showStatusModal(message);
+            }).catch(err => {
+                console.error('Could not copy text: ', err);
+                alert(linkMode === 'en' ? 'Copy failed!' : '复制失败！');
+            });
+        }
+        
+        /**
+         * 简单的状态提示 Modal (用于复制成功等)
+         */
+        function showStatusModal(message) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-800 text-white p-3 rounded-lg shadow-xl z-50 transition duration-300 opacity-0';
+            modal.textContent = message;
+            document.body.appendChild(modal);
+            setTimeout(() => {
+                modal.classList.add('opacity-100');
+            }, 10);
+            setTimeout(() => {
+                modal.classList.remove('opacity-100');
+                setTimeout(() => modal.remove(), 300);
+            }, 1500);
+        }
+
+        /**
+         * 简单的确认 Modal (用于重置对话)
+         */
+        function showConfirmModal(message, onConfirmCallback) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300 opacity-100';
+            
+            const content = document.createElement('div');
+            content.className = 'bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-sm';
+            
+            const p = document.createElement('p');
+            p.className = 'text-gray-700 mb-6';
+            p.textContent = message;
+            content.appendChild(p);
+
+            const buttonContainer = document.createElement('div');
+            buttonContainer.className = 'flex justify-end space-x-3';
+
+            const cancelButton = document.createElement('button');
+            cancelButton.className = 'py-2 px-4 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition duration-150';
+            cancelButton.textContent = linkMode === 'en' ? 'Cancel' : '取消';
+            cancelButton.onclick = () => modal.remove();
+            buttonContainer.appendChild(cancelButton);
+
+            const confirmButton = document.createElement('button');
+            confirmButton.className = 'py-2 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-150';
+            confirmButton.textContent = linkMode === 'en' ? 'Reset' : '重置';
+            confirmButton.onclick = () => {
+                onConfirmCallback();
+                modal.remove();
+            };
+            buttonContainer.appendChild(confirmButton);
+
+            content.appendChild(buttonContainer);
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+        }
+
+        /**
+         * 在聊天界面显示消息 (已修改，支持快速预览)
+         */
+        function displayMessage(text, role, recommendation = null) {
+            const messageDiv = document.createElement('div');
+            // 【优化点：用户体验】 使用 requestAnimationFrame 确保平滑滚动
+            messageDiv.className = `chat-message mb-4 p-3 rounded-lg max-w-[85%] shadow-md ${role === 'user' ? 'user-message ml-auto' : 'model-message mr-auto'}`;
+            
+            // 使用 Markdown 解析器进行基本格式化
+            const formattedText = marked.parse(text); 
+            messageDiv.innerHTML = formattedText;
+            
+            if (recommendation) {
+                const recDiv = document.createElement('div');
+                recDiv.className = 'mt-3 pt-3 border-t border-gray-300 recommendation-card';
+                
+                const processedUrl = getProcessedUrl(recommendation.url);
+                const linkText = linkMode === 'en' ? '（英文翻译）' : '（中文）';
+
+                // 【优化点：新增功能】 增加“快速预览”按钮
+                recDiv.innerHTML = `
+                    <p class="font-bold text-gray-700 mb-1">🎯 小强推荐文章 ${linkText}:</p>
+                    <a href="${processedUrl}" target="_blank" class="block text-primary hover:text-blue-600 font-semibold truncate hover:underline mb-2">
+                        ${recommendation.title}
+                    </a>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm font-mono bg-gray-200 text-gray-700 px-2 py-1 rounded">ID: ${recommendation.id}</span>
+                        <button onclick="showArticleModal('${recommendation.title.replace(/'/g, "\\'")}', \`${recommendation.summary.replace(/`/g, "\\`")}\`, '${processedUrl}')" class="px-2 py-1 text-xs rounded-full bg-primary text-white hover:bg-blue-600 transition duration-150">
+                            快速预览
+                        </button>
+                        <button onclick="copyArticleLink('${processedUrl}', '${recommendation.id}')" class="px-2 py-1 text-xs rounded-full bg-accent text-white hover:bg-green-600 transition duration-150">
+                            复制链接
+                        </button>
+                    </div>
+                `;
+                messageDiv.appendChild(recDiv);
+            }
+
+            chatContainer.appendChild(messageDiv);
+            
+            // 【优化点：用户体验】 使用 requestAnimationFrame 确保平滑滚动
+            requestAnimationFrame(() => {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            });
+        }
+
+
+        /**
+         * 确定用户输入的语言 
          */
         function detectInputLanguage(text) {
             const chineseChars = text.match(/[\u4e00-\u9fa5]/g)?.length || 0;
@@ -781,8 +563,311 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                 return 'en';
             }
             
-            return 'zh';
+            return 'zh'; // 默认中文
         }
         
-        // -------------------------------------------------------------
-        // **
+        /**
+         * 业务关键词检测函数
+         */
+        function checkBusinessKeyword(text) {
+            const lowerText = text.toLowerCase();
+            
+            // --- 购买/价格/库存 关键词列表 (优先级最高) ---
+            const buyPriceKeywords = ['价格', '多少钱', '怎么买', '下单', '库存', '有没有货', 'price', 'how much', 'buy', 'order', 'stock', 'purchase', 'available'];
+            
+            // 1. 联系/微信关键词 (保持高优先级)
+            if (lowerText.includes('联系') || lowerText.includes('contact') || lowerText.includes('微信') || lowerText.includes('wechat') || lowerText.includes('reach out')) {
+                return 'contact';
+            }
+
+            // 2. 购买/价格关键词 (赋予高优先级)
+            const isBuyPriceQuery = buyPriceKeywords.some(keyword => lowerText.includes(keyword));
+            if (isBuyPriceQuery) {
+                return 'buy_price'; // 返回引导联系真人的硬编码类型
+            }
+            
+            // 3. 香水关键词 (现在仅用于通用业务描述)
+            if (lowerText.includes('香水') || lowerText.includes('perfume') || lowerText.includes('scent') || lowerText.includes('shop') || lowerText.includes('护肤品') || lowerText.includes('skincare')) {
+                
+                // 排除性关键词：用于区分通用介绍和智能回复
+                // 包含 "Dior" 或 "哪种香水" 等具体名词时，应该走 AI 智能回复 (返回 null)
+                const specificKeywords = ['哪种', '什么牌子', '牌子', '品牌', '型号', 'type', 'brand', 'model', 'dior', 'chanel', 'gucci', 'versace', 'hermes', 'bvlgari']; 
+                
+                const isSpecificBrandQuery = specificKeywords.some(keyword => lowerText.includes(keyword));
+
+                // 如果包含香水通用词，但不包含具体的品牌/型号，也不包含购买/价格词，则返回通用介绍。
+                if (!isSpecificBrandQuery) {
+                     return 'perfume';
+                }
+                
+                // 如果包含香水通用词，但同时包含具体的品牌/型号，则返回 null，走 AI 智能回复。
+            }
+            
+            // 4. 留学咨询关键词
+            if ((lowerText.includes('留学') || lowerText.includes('咨询') || lowerText.includes('study') || lowerText.includes('abroad') || lowerText.includes('consult') || lowerText.includes('学校') || lowerText.includes('中学') || lowerText.includes('大学') || lowerText.includes('school'))) {
+                return 'study';
+            }
+            
+            // 5. 包车/租车关键词
+            if ((lowerText.includes('包车') || lowerText.includes('租车') || lowerText.includes('charter') || lowerText.includes('van') || lowerText.includes('car service') || lowerText.includes('丰田') || lowerText.includes('toyota') || lowerText.includes('游') || lowerText.includes('玩'))) {
+                return 'charter';
+            }
+            
+            return null; // 没有匹配到业务关键词，或者是一个需要智能回复的具体业务询问
+        }
+
+        // --- 优化后的 sendMessage 函数 ---
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            // 1. UI更新 (禁用输入、显示用户消息)
+            userInput.value = '';
+            userInput.disabled = true; // 禁用输入框
+            sendButton.disabled = true;
+            displayMessage(text, 'user');
+
+            // 2. 业务关键词检测
+            const lang = detectInputLanguage(text);
+            const businessKey = checkBusinessKeyword(text);
+
+            // 3. 如果检测到业务关键词，直接返回硬编码的业务详情
+            if (businessKey) {
+                // 使用检测到的语言返回硬编码的业务信息
+                const businessMessage = businessDetails[lang][businessKey]; 
+                
+                // ⚠️ 如果触发了 buy_price 或 contact，需要手动添加二维码图片（假设 wechat_qr.jpg 存在）
+                if (businessKey === 'contact' || businessKey === 'buy_price') {
+                    const messageWithImage = businessMessage + `<p class="mt-4"><img src="wechat_qr.jpg" alt="WeChat QR Code" class="max-w-xs mx-auto"></p>`;
+                    displayMessage(messageWithImage, 'model');
+                } else {
+                     displayMessage(businessMessage, 'model');
+                }
+                
+                // 记录历史并恢复按钮
+                chatHistory.push({ role: "user", parts: [{ text: text }] });
+                userInput.disabled = false;
+                sendButton.disabled = false;
+                userInput.focus();
+                
+                // 【优化点】 确保 chatHistory 不超出限制
+                if (chatHistory.length > MAX_HISTORY_MESSAGES) {
+                    chatHistory = chatHistory.slice(-MAX_HISTORY_MESSAGES);
+                }
+                return; // 结束函数，不调用 API
+            }
+            
+            // 4. 实时智能回复 (调用 Gemini API)
+            
+            // A. 显示加载指示器 (原地更新的占位符)
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.className = 'chat-message mb-4 p-3 model-message mr-auto rounded-lg max-w-[85%] shadow-md';
+            loadingIndicator.id = 'loadingIndicator'; // 增加ID以便后续更新
+            loadingIndicator.innerHTML = '<div class="flex items-center space-x-1"><span class="text-gray-500">思考中</span><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></div>';
+            chatContainer.appendChild(loadingIndicator);
+            requestAnimationFrame(() => { // 再次确保平滑滚动
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            });
+
+            // B. 准备 API 调用
+            // 【优化点：新增功能】 限制 chatHistory 长度
+            let limitedHistory = [...chatHistory].slice(-(MAX_HISTORY_MESSAGES - 1)); // 减 1 确保为最新的用户消息留出空间
+            limitedHistory.push({ role: "user", parts: [{ text: text }] }); // 添加最新的用户消息
+            
+            let articleList = '';
+            if (typeof mockArticles !== 'undefined') {
+                // 确保 mockArticles 可用
+                articleList = mockArticles.map(a => 
+                    `ID: ${a.id}, 标题: ${a.title}, 侧重点/摘要: ${a.summary}`
+                ).join('\n');
+            } else {
+                 articleList = '文章列表不可用，请勿推荐。';
+            }
+
+            // 【优化点：系统提示词】 增强 System Prompt
+            const systemPrompt = `
+                你是一个幽默、亲切、爱互动的公众号助理。请注意你的双语名称设定：
+                - **中文语境下，你的名字是“小小强”。**
+                - **英文语境下，你的名字是“Mehdi”。**
+
+                你的主要任务是：
+                1. **扮演作者分身：** 你是作者本人（一位保险专家），过去在广东、北京生活，但从2023年开始，因为陪孩子读书，现定居在菲律宾。你**必须主动、自然地将“北京生活”、“心理学”、“菲律宾陪读经历”、“跨国生活感受”等真实故事或个人见解融入聊天中**，以增强对话的真实性和亲切感。
+                
+                **【🚨 关键指令：语言、名称与回复长度 🚨】**
+                2. **语言与名称保持一致：** **你必须严格使用客户输入的语言进行回复。同时，在回复中请使用对应语言的名字。** (YOU MUST strictly reply in the language the user uses, and use the corresponding name: "小小强" for Chinese, "Mehdi" for English.)
+                3. **限制回复长度：** **请将您的回复内容控制在 3 到 5 个自然段之间**，避免冗长。
+                
+                4. **精准文章推荐：** 当读者的话题与保险、心理、菲律宾生活、旅游或留学相关时，你必须从下面的“文章列表”中选择一篇最精准的文章进行推荐。
+                5. **推荐理由：** **你需要在回复文本中自然地提到推荐这篇文章的理由**，然后才输出推荐格式。
+                6. **推荐格式：** 必须在回复的最后一行以严格的格式输出推荐ID，格式为：[RECOMMEND_ID: Axxx]，其中 Axxx 是文章ID。如果没有合适的文章，则回复[RECOMMEND_ID: NONE]。
+                7. **联系主人：** 如果有人想联系作者本身，请指引他到微信公众号“小强的精彩世界”去订阅和留言，留下他的联系方式，作者会联系他。
+                8. **注意：** 仅在客户未提及“香水”、“留学”、“包车”或“联系”等业务关键词时，才使用此模型回复。否则，程序将直接回复硬编码的业务详情。
+
+                --- 文章列表（用于推荐，请勿直接发送给用户）---
+                ${articleList}
+            `;
+            
+            // PAYLOAD 结构
+            const payload = {
+                // 【优化点：新增功能】 使用 limitedHistory
+                contents: limitedHistory, 
+                config: {
+                    systemInstruction: systemPrompt
+                }
+            };
+
+            let modelReplyText = lang === 'en' ? "Sorry, the system is experiencing a temporary issue." : "抱歉，系统暂时出了点小问题。";
+            let recommendedArticle = null;
+            let fullModelResponse = null;
+            let apiError = false; // 新增错误标记
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    apiError = true;
+                    const errorJson = await response.json();
+                    const errorMessage = errorJson.error?.message || response.statusText;
+                    modelReplyText = lang === 'en' 
+                        ? `API Request Failed (Status ${response.status}). Error: ${errorMessage}`
+                        : `API请求失败 (状态码 ${response.status})。错误信息: ${errorMessage}。请尝试重置对话或稍后再试。`;
+                } else {
+                    const result = await response.json();
+                    
+                    // 确保有返回结果
+                    fullModelResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (!fullModelResponse) {
+                        modelReplyText = lang === 'en' 
+                            ? "I'm sorry, the model did not provide a coherent response." 
+                            : "抱歉，模型未返回有效的回复。";
+                    } else {
+                        // 提取推荐ID
+                        const match = fullModelResponse.match(/\[RECOMMEND_ID: (A\d{3}|NONE)\]/i);
+                        const recId = match ? match[1] : 'NONE';
+
+                        // 清理回复文本，移除推荐标记
+                        modelReplyText = fullModelResponse.replace(/\[RECOMMEND_ID: (A\d{3}|NONE)\]/i, '').trim();
+
+                        if (recId !== 'NONE') {
+                            // 查找文章
+                            if (typeof mockArticles !== 'undefined') {
+                                recommendedArticle = mockArticles.find(a => a.id === recId);
+                            }
+                            
+                            // 如果推荐了不存在的文章，可以加上提示
+                            if (!recommendedArticle) {
+                                modelReplyText += (lang === 'en' ? '\n\n(System Note: Recommended article ID is invalid.)' : '\n\n(系统提示: 推荐的文章ID无效。)');
+                            }
+                        }
+                        // 【优化点：新增功能】 模型回复成功后才加入 chatHistory
+                        // 只需要将最新的用户消息和回复消息加入 chatHistory
+                        chatHistory.push(limitedHistory[limitedHistory.length - 1]); // 用户消息
+                        chatHistory.push({ role: "model", parts: [{ text: fullModelResponse }] }); // 模型回复
+                        
+                        // 再次确保 chatHistory 不超出限制
+                        if (chatHistory.length > MAX_HISTORY_MESSAGES) {
+                            chatHistory = chatHistory.slice(-MAX_HISTORY_MESSAGES);
+                        }
+                    }
+                }
+
+            } catch (error) {
+                apiError = true;
+                console.error("Critical error in sendMessage:", error);
+                modelReplyText = lang === 'en' 
+                    ? `A critical network error occurred: ${error.message}`
+                    : `发生致命网络错误：${error.message}。请检查您的网络连接。`;
+                
+            }
+            
+            // C. 移除加载提示并显示最终回复
+            // 【优化点：用户体验】 直接更新加载气泡的内容
+            if (loadingIndicator) {
+                loadingIndicator.id = ''; // 移除ID
+                loadingIndicator.innerHTML = ''; // 清空加载动画
+                loadingIndicator.className = `chat-message mb-4 p-3 model-message mr-auto rounded-lg max-w-[85%] shadow-md`;
+                
+                // 重新渲染内容（使用 displayMessage 的核心逻辑）
+                const formattedText = marked.parse(modelReplyText); 
+                loadingIndicator.innerHTML = formattedText;
+                
+                if (recommendedArticle && !apiError) { // 只有成功且有推荐文章时才显示推荐卡片
+                    const recDiv = document.createElement('div');
+                    recDiv.className = 'mt-3 pt-3 border-t border-gray-300 recommendation-card';
+                    
+                    const processedUrl = getProcessedUrl(recommendedArticle.url);
+                    const linkText = linkMode === 'en' ? '（英文翻译）' : '（中文）';
+
+                    recDiv.innerHTML = `
+                        <p class="font-bold text-gray-700 mb-1">🎯 小强推荐文章 ${linkText}:</p>
+                        <a href="${processedUrl}" target="_blank" class="block text-primary hover:text-blue-600 font-semibold truncate hover:underline mb-2">
+                            ${recommendedArticle.title}
+                        </a>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm font-mono bg-gray-200 text-gray-700 px-2 py-1 rounded">ID: ${recommendedArticle.id}</span>
+                            <button onclick="showArticleModal('${recommendedArticle.title.replace(/'/g, "\\'")}', \`${recommendedArticle.summary.replace(/`/g, "\\`")}\`, '${processedUrl}')" class="px-2 py-1 text-xs rounded-full bg-primary text-white hover:bg-blue-600 transition duration-150">
+                                快速预览
+                            </button>
+                            <button onclick="copyArticleLink('${processedUrl}', '${recommendedArticle.id}')" class="px-2 py-1 text-xs rounded-full bg-accent text-white hover:bg-green-600 transition duration-150">
+                                复制链接
+                            </button>
+                        </div>
+                    `;
+                    loadingIndicator.appendChild(recDiv);
+                }
+            }
+            
+            // D. 恢复输入
+            userInput.disabled = false;
+            sendButton.disabled = false;
+            userInput.focus();
+            requestAnimationFrame(() => { // 确保在恢复输入时，再次滚动到底部
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            });
+        }
+
+
+        // --- 6. Event Listeners & Initialization ---
+        
+        // 绑定到全局 scope，以便 Modal 中的 onclick 事件能够调用
+        window.closeArticleModal = closeArticleModal;
+        window.showArticleModal = showArticleModal;
+        window.copyArticleLink = copyArticleLink;
+        window.initializeApp = initializeApp; // 调试或特殊用途
+
+        sendButton.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !sendButton.disabled) {
+                sendMessage();
+            }
+        });
+        // 确保输入框内容变化时，按钮启用/禁用状态正确
+        userInput.addEventListener('input', () => {
+            sendButton.disabled = userInput.value.trim() === '';
+        });
+
+        toggleLinkModeButton.addEventListener('click', toggleLinkMode);
+        
+        resetButton.addEventListener('click', () => {
+            showConfirmModal("确定要重置对话吗？重置后小强将忘记所有之前的聊天内容。| Are you sure you want to reset the conversation? Xiaoqiang will forget all previous chat history.", initializeApp);
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 延迟执行以确保所有的 DOM 和外部脚本都已加载
+            setTimeout(() => {
+                // 确保 marked.js 也加载完成
+                if (typeof mockArticles !== 'undefined' && typeof marked !== 'undefined') {
+                    initializeApp();
+                } else {
+                    showInitError(); 
+                }
+            }, 100);
+        });
+    </script>
+    
+</body>
+</html>

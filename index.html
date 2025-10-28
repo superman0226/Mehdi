@@ -166,8 +166,9 @@
         
         // --- 1. State Variables ---
         // ⚠️ 请在这里替换为您真实的 API Key
-        const apiKey = "AIzaSyDEVjh8JYyLAhM58XvONoyI_Dwvs8hS7Vo"; 
-        const modelName = 'gemini-2.5-flash-preview-09-2025';
+        const apiKey = "AIzaSyDEVjh8JYyLAhM58XwOndyI_Dwvs8hS7Vo"; 
+        // 建议使用最新的稳定模型，这里保留了用户提供的名称
+        const modelName = 'gemini-2.5-flash-preview-09-2025'; 
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
         
         let chatHistory = []; 
@@ -594,7 +595,7 @@ If you have questions about **insurance, psychology, travel, study abroad in the
             return null; // 没有匹配到业务关键词，进入 AI 智能回复
         }
 
-        // --- 优化后的 sendMessage 函数 (已包含 Loading 和 Error 修复) ---
+        // --- 优化后的 sendMessage 函数 (最终修复版本) ---
         async function sendMessage() {
             const text = userInput.value.trim();
             if (!text) return;
@@ -649,7 +650,9 @@ If you have questions about **insurance, psychology, travel, study abroad in the
 
             // B. 准备 API 调用
             let limitedHistory = [...chatHistory].slice(-(MAX_HISTORY_MESSAGES - 1)); 
-            limitedHistory.push({ role: "user", parts: [{ text: text, role: "user" }] }); // 确保用户的角色是 user
+            
+            // 修正点 1: 确保用户消息 Content 内部的 parts 对象中没有 role 字段
+            limitedHistory.push({ role: "user", parts: [{ text: text }] }); 
 
             let articleList = '';
             if (typeof mockArticles !== 'undefined') {
@@ -683,7 +686,7 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                 ${articleList}
             `;
             
-            // 1. 创建 System Content 对象 (【核心修复点】)
+            // 1. 创建 System Content 对象 
             const systemContent = {
                 role: "system", // 明确指定角色为 'system'
                 parts: [{ text: systemPrompt }]
@@ -692,7 +695,7 @@ If you have questions about **insurance, psychology, travel, study abroad in the
             // 2. 将 System Content 放在历史记录的最前面
             let fullContents = [systemContent, ...limitedHistory];
 
-            // PAYLOAD 结构 (【最终修正】：移除 systemInstruction 字段，将其内容注入 contents 数组)
+            // PAYLOAD 结构 
             const payload = {
                 contents: fullContents
             };
@@ -743,7 +746,10 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                         // 记录历史
                         // 注意：这里只记录用户和模型的实际对话，不记录 system prompt
                         chatHistory.push(limitedHistory[limitedHistory.length - 1]); 
-                        chatHistory.push({ role: "model", parts: [{ text: fullModelResponse, role: "model" }] }); 
+                        
+                        // 修正点 2: 确保模型消息 Content 内部的 parts 对象中没有 role 字段
+                        chatHistory.push({ role: "model", parts: [{ text: fullModelResponse }] }); 
+                        
                         if (chatHistory.length > MAX_HISTORY_MESSAGES) {
                             chatHistory = chatHistory.slice(-MAX_HISTORY_MESSAGES);
                         }

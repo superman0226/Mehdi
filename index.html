@@ -693,12 +693,10 @@ If you have questions about **insurance, psychology, travel, study abroad in the
             // 核心修复点：使用 systemInstruction 字段，而不是 contents 数组中的 role: "system"
             // PAYLOAD 结构 
             const payload = {
-                // contents 数组只包含 user/model 消息，不再包含 role: "system"
                 contents: limitedHistory, 
-                config: {
-                    systemInstruction: systemPrompt // 使用专用的 systemInstruction 字段
-                }
+                system_instruction: systemPrompt // 使用下划线命名法的顶级字段
             };
+
             
             let modelReplyText = lang === 'en' ? "Sorry, the system is experiencing a temporary issue." : "抱歉，系统暂时出了点小问题。";
             let recommendedArticle = null;

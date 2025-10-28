@@ -690,15 +690,28 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                 ${articleList}
             `;
             
-            // 核心修复点：使用 systemInstruction 字段，而不是 contents 数组中的 role: "system"
+            // ... (代码上半部分保持不变) ...
+
+            // 增强 System Prompt
+            // ... (systemPrompt 变量定义保持不变) ...
+            
+            // 核心修复点：将 systemPrompt 字符串封装成 Content 对象
             // PAYLOAD 结构 
             const payload = {
+                // contents 数组只包含 user/model 消息
                 contents: limitedHistory, 
-                system_instruction: systemPrompt // 使用下划线命名法的顶级字段
+                // 修复：将纯字符串替换为 Content 对象结构
+                system_instruction: {
+                    parts: [
+                        {
+                            text: systemPrompt
+                        }
+                    ]
+                }
             };
-
             
             let modelReplyText = lang === 'en' ? "Sorry, the system is experiencing a temporary issue." : "抱歉，系统暂时出了点小问题。";
+            // ... (API 调用和错误处理部分保持不变) ...
             let recommendedArticle = null;
             let fullModelResponse = null;
             let apiError = false; 

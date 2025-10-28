@@ -1,9 +1,18 @@
+您提出了一个非常好的改进点——用户界面的国际化。对于您的程序目标客户（中文用户和需要英文信息的用户）来说，界面上的双语提示能够显著提升用户体验。
+我将修改 index.html 中所有硬编码的中文提示，改为根据当前的 linkMode（链接模式）动态显示中英双语提示。
+主要修改的区域包括：
+ * <header> 中的标题。
+ * <div id="linkModeDisplay"> 中的模式显示。
+ * <input> 中的占位符。
+最终 index.html 代码 (包含界面双语提示)
+我将使用 JavaScript 来动态更新 UI 文本，以便与 linkMode 状态保持一致。
+注意： 核心逻辑保持不变，只修改了 UI 文本的显示方式。
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小强的精彩世界欢迎你</title>
+    <title>小强的精彩世界欢迎你 | Xiaoqiang's Wonderful World</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 
@@ -63,19 +72,17 @@
     <div class="max-w-xl mx-auto p-4 md:p-6 flex flex-col h-screen">
         
         <header class="mb-4 bg-white p-4 rounded-xl shadow-lg border-t-4 border-primary">
-            <h1 class="text-xl md:text-2xl font-bold text-gray-800 text-center">小强的精彩世界欢迎你</h1>
+            <h1 class="text-xl md:text-2xl font-bold text-gray-800 text-center" id="headerTitle">小强的精彩世界欢迎你 | Xiaoqiang's Wonderful World</h1>
         </header>
 
         <div class="flex justify-between items-center mb-4 p-3 bg-white rounded-xl shadow">
             <div id="linkModeDisplay" class="text-sm font-semibold text-gray-600">
-                链接模式：中文 (默认)
-            </div>
+                </div>
             <div class="flex space-x-2">
                 <button id="toggleLinkMode" class="px-3 py-1 text-sm rounded-full bg-primary text-white hover:bg-blue-600 transition duration-150 shadow-md">
-                    切换到英文翻译
-                </button>
+                    </button>
                 <button id="resetButton" class="px-3 py-1 text-sm rounded-full bg-red-500 text-white hover:bg-red-600 transition duration-150 shadow-md">
-                    重置对话
+                    重置对话 | Reset
                 </button>
             </div>
         </div>
@@ -84,7 +91,7 @@
             </div>
 
         <div class="bg-white p-4 rounded-xl shadow-lg flex items-center">
-            <input type="text" id="userInput" placeholder="输入读者的问题，与小强互动..." class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition duration-150 mr-3">
+            <input type="text" id="userInput" class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition duration-150 mr-3">
             <button id="sendButton" class="p-3 bg-accent text-white rounded-lg hover:bg-green-600 transition duration-150 shadow-md flex items-center justify-center disabled:opacity-50" disabled>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
                     <path d="M3.478 2.405a.75.75 0 0 0-.926.94l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.547 60.547 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.547 60.547 0 0 0 3.478 2.405Z" />
@@ -112,8 +119,11 @@
         const resetButton = document.getElementById('resetButton');
         const toggleLinkModeButton = document.getElementById('toggleLinkMode');
         const linkModeDisplay = document.getElementById('linkModeDisplay');
+        const headerTitle = document.getElementById('headerTitle');
+
 
         // --- 3. 业务详情数据 (硬编码，用于关键词触发) ---
+        // (保持不变)
         const businessDetails = {
             zh: {
                 perfume: `
@@ -182,18 +192,15 @@ Great! You can reach my master, Teacher Xiaoqiang, via the QR code below (for th
 
         /**
          * 获取当前语言的欢迎语
-         * @param {'zh'|'en'} lang - 目标语言
          */
         function getInitialMessage(lang) {
-            // UPDATED CHINESE WELCOME MESSAGE
             const zhMessage = `你好啊！我是你的公众号小助理**小小强**。我的主人**小强老师**是一位高学历、高知识结构、有广东、北京等多地丰富经历生活、热爱公益，曾被央视《人物》专栏报道过的有志人士。通晓计算机、信息技术、企业管理（10年以上工作经历）、人寿保险（12年以上工作经历）、心理学（研究血型与性格相关20年）。10多年以来撰写了400多篇文章。**2023年以后带娃来菲律宾留学并旅居在此**，又撰写了很多有关菲律宾留学、旅行、生活的相关文章。
 
 **我用了一年时间走遍了菲律宾，还开了一家香水店，买了一辆丰田七座商务车，并把中国孩子到菲律宾读中学和考大学的路全摸清了。**
 
 如果您有关于保险、心理、菲律宾旅行、留学，马尼拉地区包车游、买香水和护肤品，或者其他想聊的，尽管问我！`;
 
-            // UPDATED ENGLISH WELCOME MESSAGE
-            const enMessage = `Hello! I am your official account assistant, **Xiao Xiaoqiang**. My master, **Teacher Mehdi**, is a highly educated and knowledgeable person with rich experience from various regions, including Guangdong and Beijing. He is a public-spirited individual who was once featured in CCTV's "People" column. He is proficient in Computer Science, Information Technology, Business Management (10+ years experience), Life Insurance (12+ years experience), and Psychology (20 years researching blood types and personality). He has authored over 400 articles in the last decade. **Since 2023, he has been residing in the Philippines, accompanying his child for school**, and has written many articles on Philippine study, travel, and life.
+            const enMessage = `Hello! I am your official account assistant, **Xiao Xiaoqiang**. My master, **Teacher Xiaoqiang**, is a highly educated and knowledgeable person with rich experience from various regions, including Guangdong and Beijing. He is a public-spirited individual who was once featured in CCTV's "People" column. He is proficient in Computer Science, Information Technology, Business Management (10+ years experience), Life Insurance (12+ years experience), and Psychology (20 years researching blood types and personality). He has authored over 400 articles in the last decade. **Since 2023, he has been residing in the Philippines, accompanying his child for school**, and has written many articles on Philippine study, travel, and life.
 
 **I spent a year traveling all over the Philippines, opened a perfume shop, bought a Toyota 7-seater business van, and thoroughly figured out the path for Chinese children to study in middle school and university in the Philippines.**
 
@@ -203,14 +210,65 @@ If you have any questions about insurance, psychology, travel, study abroad in t
         }
 
         /**
-         * (其他辅助函数: showInitError, getProcessedUrl, updateLinkModeUI, toggleLinkMode, showStatusModal, showConfirmModal, copyArticleLink - 保持不变)
+         * 更新链接模式的显示和按钮文本 (修改：实现双语提示)
          */
+        function updateLinkModeUI() {
+            if (linkMode === 'zh') {
+                linkModeDisplay.textContent = '链接模式：中文 (默认) | Link Mode: Chinese (Default)';
+                toggleLinkModeButton.textContent = '切换到英文翻译 | Switch to English';
+                userInput.placeholder = '输入读者的问题，与小强互动...';
+                toggleLinkModeButton.classList.remove('bg-green-600');
+                toggleLinkModeButton.classList.add('bg-primary');
+            } else {
+                linkModeDisplay.textContent = '链接模式：英文翻译 | Link Mode: English Translation';
+                toggleLinkModeButton.textContent = '切换到中文 (默认) | Switch to Chinese';
+                userInput.placeholder = 'Ask a question to Xiaoqiang...';
+                toggleLinkModeButton.classList.remove('bg-primary');
+                toggleLinkModeButton.classList.add('bg-green-600');
+            }
+            localStorage.setItem('linkMode', linkMode);
+        }
+
+        /**
+         * 切换链接模式
+         */
+        function toggleLinkMode() {
+            linkMode = linkMode === 'zh' ? 'en' : 'zh';
+            updateLinkModeUI();
+            // 清除旧的推荐卡片
+            const recCards = document.querySelectorAll('.recommendation-card');
+            recCards.forEach(card => card.remove());
+        }
+
+        /**
+         * 初始化或重置应用状态
+         */
+        function initializeApp() {
+            if (typeof mockArticles === 'undefined') {
+                 showInitError();
+                 return;
+            }
+
+            chatContainer.innerHTML = '';
+            chatHistory = [];
+            
+            // 首次启动时，显示助理的欢迎语 (默认为中文)
+            const initialMessage = getInitialMessage('zh');
+            displayMessage(initialMessage, 'model');
+            
+            // 动态更新所有 UI 提示
+            updateLinkModeUI();
+            sendButton.disabled = false;
+        }
+
+
+        // --- 5. 其他辅助函数 (保持不变) ---
         function showInitError() {
             chatContainer.innerHTML = `
                 <div class="text-center text-red-500 p-4 bg-red-50 rounded-lg">
-                    <p class="font-bold mb-2">系统初始化失败！</p>
-                    <p class="text-sm">错误：未找到 <strong>articles.js</strong> 文件中的 mockArticles 数据。</p>
-                    <p class="text-xs mt-1">请确保 'articles.js' 文件与 'index.html' 在同一目录，且 'mockArticles' 变量使用 'var' 声明。</p>
+                    <p class="font-bold mb-2">系统初始化失败！| System Initialization Failed!</p>
+                    <p class="text-sm">错误：未找到 <strong>articles.js</strong> 文件中的 mockArticles 数据。| Error: mockArticles data not found.</p>
+                    <p class="text-xs mt-1">请确保 'articles.js' 文件与 'index.html' 在同一目录。| Ensure 'articles.js' is in the same directory as 'index.html'.</p>
                 </div>
             `;
             sendButton.disabled = true;
@@ -221,26 +279,6 @@ If you have any questions about insurance, psychology, travel, study abroad in t
                 return `https://translate.google.com/translate?sl=zh-CN&tl=en&u=${encodedUrl}`;
             }
             return originalUrl;
-        }
-        function updateLinkModeUI() {
-            if (linkMode === 'zh') {
-                linkModeDisplay.textContent = '链接模式：中文 (默认)';
-                toggleLinkModeButton.textContent = '切换到英文翻译';
-                toggleLinkModeButton.classList.remove('bg-green-600');
-                toggleLinkModeButton.classList.add('bg-primary');
-            } else {
-                linkModeDisplay.textContent = '链接模式：英文翻译';
-                toggleLinkModeButton.textContent = '切换到中文 (默认)';
-                toggleLinkModeButton.classList.remove('bg-primary');
-                toggleLinkModeButton.classList.add('bg-green-600');
-            }
-            localStorage.setItem('linkMode', linkMode);
-        }
-        function toggleLinkMode() {
-            linkMode = linkMode === 'zh' ? 'en' : 'zh';
-            updateLinkModeUI();
-            const recCards = document.querySelectorAll('.recommendation-card');
-            recCards.forEach(card => card.remove());
         }
         function showStatusModal(message) {
             const modalId = 'statusModal';
@@ -253,7 +291,7 @@ If you have any questions about insurance, psychology, travel, study abroad in t
                     <div class="bg-white p-6 rounded-xl shadow-2xl transform scale-95 transition-transform duration-300">
                         <p id="modalMessage" class="text-lg font-semibold text-gray-800 mb-4"></p>
                         <button onclick="document.getElementById('${modalId}').classList.remove('opacity-100', 'pointer-events-auto'); document.getElementById('${modalId}').classList.add('opacity-0', 'pointer-events-none');" class="w-full py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition duration-150">
-                            确定
+                            确定 | OK
                         </button>
                     </div>
                 `;
@@ -278,7 +316,7 @@ If you have any questions about insurance, psychology, travel, study abroad in t
             }
             document.body.removeChild(textarea);
 
-            const statusText = success ? `已复制文章 ${id} 的链接！` : '复制失败，请手动复制。';
+            const statusText = success ? `已复制文章 ${id} 的链接！| Link for Article ${id} copied!` : '复制失败，请手动复制。| Copy failed, please copy manually.';
             showStatusModal(statusText); 
         }
         function showConfirmModal(message, onConfirmCallback) {
@@ -294,10 +332,10 @@ If you have any questions about insurance, psychology, travel, study abroad in t
                         <p id="confirmModalMessage" class="text-lg font-semibold text-gray-800 mb-6"></p>
                         <div class="flex justify-end space-x-3">
                             <button id="confirmCancelBtn" class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition duration-150">
-                                取消
+                                取消 | Cancel
                             </button>
                             <button id="confirmOkBtn" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-150">
-                                确定重置
+                                确定重置 | Confirm Reset
                             </button>
                         </div>
                     </div>
@@ -415,26 +453,6 @@ If you have any questions about insurance, psychology, travel, study abroad in t
                 return 'charter';
             }
             return null; // 没有匹配到业务关键词
-        }
-
-        /**
-         * 初始化或重置应用状态
-         */
-        function initializeApp() {
-            if (typeof mockArticles === 'undefined') {
-                 showInitError();
-                 return;
-            }
-
-            chatContainer.innerHTML = '';
-            chatHistory = [];
-            
-            // 首次启动时，显示助理的欢迎语 (默认为中文)
-            const initialMessage = getInitialMessage('zh');
-            displayMessage(initialMessage, 'model');
-            
-            updateLinkModeUI();
-            sendButton.disabled = false;
         }
 
         /**
@@ -586,7 +604,7 @@ If you have any questions about insurance, psychology, travel, study abroad in t
         toggleLinkModeButton.addEventListener('click', toggleLinkMode);
         
         resetButton.addEventListener('click', () => {
-            showConfirmModal("确定要重置对话吗？重置后小强将忘记所有之前的聊天内容。", initializeApp);
+            showConfirmModal("确定要重置对话吗？重置后小强将忘记所有之前的聊天内容。| Are you sure you want to reset the conversation? Xiaoqiang will forget all previous chat history.", initializeApp);
         });
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -600,3 +618,4 @@ If you have any questions about insurance, psychology, travel, study abroad in t
     
 </body>
 </html>
+

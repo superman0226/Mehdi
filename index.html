@@ -165,16 +165,17 @@
         const headerTitleContainer = document.getElementById('headerTitleContainer'); 
 
 
-        // --- 3. 业务详情数据 (硬编码，用于关键词触发) ---
-        const businessDetails = {
-            zh: {
-                perfume: `
+// --- 3. 业务详情数据 (硬编码，用于关键词触发) ---
+const businessDetails = {
+    zh: {
+        // ... (中文部分不变，保持完整)
+        perfume: `
 **【香水业务推广】**
 我们在马尼拉开了一家香水店，欢迎您了解和购买。我们的香水种类丰富，**货源来自美国、泰国和中国大陆**。价格范围覆盖广泛，**从一百比索（PHP 100）到三千比索（PHP 3000）不等**，顾客可以根据自己的预算和喜好选购。
 
 **快速提醒：** 您也可以咨询我们的留学咨询和包车服务。
-                `,
-                study: `
+        `,
+        study: `
 **【菲律宾留学全流程付费咨询服务】**
 您好，很高兴您对我们的留学咨询服务感兴趣。
 我的主人小强老师拥有在菲律宾的陪读经验，能够为您提供最接地气、最专业的指导。
@@ -182,52 +183,56 @@
 **收费模式：** 本服务为**付费咨询**，欢迎随时与我联系，咨询详细的收费标准和合作流程！
 
 **快速提醒：** 您也可以咨询我们的香水销售和包车服务。
-                `,
-                charter: `
+        `,
+        charter: `
 **【七座商务车包车服务】**
 我们提供**七座商务车包车服务**，非常适合在马尼拉进行短途观光或商务出行的游客。车辆舒适且配有专业司机，能为您在马尼拉的行程提供安全便捷的交通方案。服务详情和报价请随时咨询。
 
 **快速提醒：** 您也可以咨询我们的香水销售和留学咨询服务。
-                `,
-                contact: `
+        `,
+        contact: `
 很高兴您想联系我的主人！请扫描下方二维码（**小强的精彩世界公众号**）或通过微信号联系。主人小强老师将会在看到信息后尽快回复您。
 
 ![微信二维码](images/wechat_qr.jpg)
 
 **提示：** 如果您是咨询留学、香水或包车业务，请在添加后告知，以便我们更高效地为您服务。
-                `
-            },
-            en: {
-                perfume: `
+        `
+    },
+    en: {
+        // 修正：确保英文描述是纯英文
+        perfume: `
 **【Perfume Business Promotion】**
-We operate a perfume shop in Manila. Our selection is diverse, featuring scents sourced from **the United States, Thailand, and Mainland China**. The pricing is flexible, ranging **from one hundred pesos (PHP 100) up to three thousand pesos (PHP 3000)**. Feel free to contact me for inquiries and purchases.
+We run a perfume shop here in Manila. Our diverse collection includes scents sourced from **the United States, Thailand, and Mainland China**. Prices are very flexible, ranging **from 100 PHP up to 3000 PHP**. Please feel free to inquire about our selection and make a purchase!
 
 **Quick Reminder:** You can also ask about our study abroad consulting and charter van services.
-                `,
-                study: `
+        `,
+        // 修正：确保英文描述是纯英文
+        study: `
 **【Full-Process Paid Consultation for Study in the Philippines】**
-Hello! We are delighted you are interested in our study abroad consulting service.
-My master, Teacher Xiaoqiang, leverages his personal experience as a co-resident parent in the Philippines to offer practical and professional guidance.
-**Service includes:** Comprehensive support for the entire process, including school selection, application, visa processing, and settlement arrangements upon arrival.
+Hello! We are glad you are interested in our consultation service.
+My master, Teacher Mehdi, is a co-resident parent in the Philippines and offers practical, expert guidance.
+**Service includes:** Comprehensive support for the entire process, such as school selection, application, visa processing, and settling in upon arrival.
 **Fee Structure:** This is a **paid consultation** service. Please contact us for detailed pricing and collaboration steps!
 
 **Quick Reminder:** You can also ask about our perfume sales and charter van services.
-                `,
-                charter: `
+        `,
+        // 修正：确保英文描述是纯英文
+        charter: `
 **【7-Seater Van Charter Service】**
-We provide a **7-seater business van charter service**, ideal for short-distance tours or business travel within Manila. Our vehicles are comfortable and come with a professional driver, offering a safe and convenient transportation option. Please contact us for service details and quotes.
+We provide a **7-seater business van charter service**, perfect for short trips or business travel within the Manila area. Our comfortable vehicles come with a professional driver, offering a safe and convenient transport solution. Contact us for service details and quotes.
 
 **Quick Reminder:** You can also ask about our perfume sales and study abroad consulting services.
-                `,
-                contact: `
-Great! You can reach my master, Teacher Xiaoqiang, via the QR code below (for the official account: **Xiaoqiang’s Wonderful World**) or by WeChat ID. He will get back to you as soon as possible.
+        `,
+        // 修正：确保英文描述是纯英文
+        contact: `
+Great! You can reach my master, Teacher Mehdi, via the QR code below (for the official account: **Xiaoqiang’s Wonderful World**) or by WeChat ID. He will get back to you as soon as possible.
 
 ![WeChat QR Code](images/wechat_qr.jpg)
 
 **Note:** If you are inquiring about study abroad, perfume, or charter services, please mention it after adding to help us serve you more efficiently.
-                `
-            }
-        };
+        `
+    }
+};
 
 
         // --- 4. Core Functions ---

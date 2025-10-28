@@ -118,6 +118,15 @@
             </div>
         </header>
 
+        <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl shadow-md text-sm text-red-700 font-medium">
+            <p class="font-bold text-base mb-1">📢 重要提醒：对话隐私与记录</p>
+            <ul class="list-disc ml-4 space-y-0.5">
+                <li>本窗口**不保存**聊天记录，刷新或断开连接将清空内容。</li>
+                <li>为保护您的隐私，您在此发送的消息**主人本人是看不到的**。</li>
+                <li>如需留言让主人看到，请到**微信公众号“小强的精彩世界”**留言，或直接回复**联系方式**。</li>
+            </ul>
+        </div>
+        
         <div class="flex justify-between items-center mb-4 p-3 bg-white rounded-xl shadow">
             <div id="linkModeDisplay" class="text-sm font-semibold text-gray-600">
                 </div>
@@ -222,7 +231,9 @@
 **收费模式：** 本服务为**付费咨询**。
 
 **【请联系真人主人，咨询详细的收费标准和合作流程！】**
-**联系方式：** * 请通过**微信号 6057710** 或 Facebook (Mehdi Lee) 留言，或者拨打菲律宾手机 **09994233236** 咨询详细的收费标准和合作流程！
+**联系方式：** * **微信号：6057710** (可加)
+* **Facebook 账户：** Mehdi Lee
+* **菲律宾手机：** 09994233236 (可直拨)
                 `,
                 // ⚠️ 优化后的包车服务，包含联系方式
                 charter: `
@@ -237,13 +248,15 @@
 **【请联系真人主人，咨询详细报价！】**
 我是小助理，无法实时提供定制报价。请您务必联系我的主人，告知您的**出行日期、人数和大致行程**，他会尽快为您安排并提供最优报价！
 
-**联系方式：** * 请通过**微信号 6057710** 或 Facebook (Mehdi Lee) 留言，或者拨打菲律宾手机 **09994233236** 咨询详细的收费标准和合作流程！
+**联系方式：** * **微信号：6057710** (可加)
+* **Facebook 账户：** Mehdi Lee
+* **菲律宾手机：** 09994233236 (可直拨)
                 `,
-                // 通用联系引导 (新增联系方式)
+                // ⚠️ 更新后的通用联系引导 (直接提供联系方式)
                 contact: `
 很高兴您想联系我的主人！
 
-**请选择最方便您的联系方式：**
+**【请选择最方便您的联系方式：】**
 * **微信号：6057710** (或扫描下方二维码) (国内常用)
 * **Facebook 账户：** Mehdi Lee (国外常用)
 * **菲律宾手机：** 09994233236 (可直接拨打)
@@ -272,7 +285,7 @@ Hello! I am just an assistant and cannot check real-time stock or confirm prices
 **Contact Details:**
 * **WeChat ID: 6057710** (or scan the QR code below) (Chinese users)
 * **Facebook Account:** Mehdi Lee (International users)
-* **Philippine Mobile:** 09994233236 (Call or Text)
+* **Philippine Mobile:** 09994233236 (Philippines)
 
 He will reply as soon as possible to confirm the latest stock and best price for you!
                 `,
@@ -285,7 +298,9 @@ My master, Teacher Mehdi, offers practical, expert guidance as an experienced co
 **Fee Structure:** This is a **paid consultation** service.
 
 **【Contact the Owner Directly for Detailed Pricing and Process!】**
-**Contact Info:** * Message us via **WeChat ID 6057710** or Facebook (Mehdi Lee), or call the Philippine mobile **09994233236** to inquire about our detailed fee structure and collaboration process!
+**Contact Info:** * **WeChat ID: 6057710** (Addable)
+* **Facebook Account:** Mehdi Lee
+* **Philippine Mobile:** 09994233236 (Direct Call)
                 `,
                 // ⚠️ 优化后的包车服务，包含联系方式
                 charter: `
@@ -300,13 +315,15 @@ We provide a **7-seater business van charter service**, perfect for short trips 
 **【Contact the Owner Directly for Detailed Quotes!】**
 I am just an assistant and cannot provide customized quotes in real-time. Please contact my master with your **travel dates, number of passengers, and rough itinerary** for the best arrangements and pricing!
 
-**Contact Info:** * Message us via **WeChat ID 6057710** or Facebook (Mehdi Lee), or call the Philippine mobile **09994233236** to inquire about detailed pricing and collaboration steps!
+**Contact Info:** * **WeChat ID: 6057710** (Addable)
+* **Facebook Account:** Mehdi Lee
+* **Philippine Mobile:** 09994233236 (Philippines)
                 `,
-                // 通用联系引导 (新增联系方式)
+                // ⚠️ 更新后的通用联系引导 (直接提供联系方式)
                 contact: `
 Great! You want to reach my master, Teacher Mehdi.
 
-**Please choose the most convenient contact method for you:**
+**【Please choose the most convenient contact method for you:】**
 * **WeChat ID: 6057710** (or scan the QR code below) (Chinese users)
 * **Facebook Account:** Mehdi Lee (International users)
 * **Philippine Mobile:** 09994233236 (Philippines)
@@ -566,7 +583,7 @@ If you have questions about **insurance, psychology, travel, study abroad in the
             const buyPriceKeywords = ['价格', '多少钱', '怎么买', '下单', '库存', '有没有货', 'price', 'how much', 'buy', 'order', 'stock', 'purchase', 'available', '现货'];
             
             // 1. 联系/微信关键词 
-            if (lowerText.includes('联系') || lowerText.includes('contact') || lowerText.includes('微信') || lowerText.includes('wechat') || lowerText.includes('reach out')) {
+            if (lowerText.includes('联系') || lowerText.includes('contact') || lowerText.includes('微信') || lowerText.includes('wechat') || lowerText.includes('reach out') || lowerText.includes('找到') || lowerText.includes('主人')) {
                 return 'contact';
             }
 
@@ -733,7 +750,7 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                 4. **精准文章推荐：** 当读者的话题与保险、心理、菲律宾生活、旅游或留学相关时，你必须从下面的“文章列表”中选择一篇最精准的文章进行推荐。
                 5. **推荐理由：** **你需要在回复文本中自然地提到推荐这篇文章的理由**，然后才输出推荐格式。
                 6. **推荐格式：** 必须在回复的最后一行以严格的格式输出推荐ID，格式为：[RECOMMEND_ID: Axxx]，其中 Axxx 是文章ID。如果没有合适的文章，则回复[RECOMMEND_ID: NONE]。
-                7. **联系与推广：** a) 如果有人想联系作者本身，请指引他到微信公众号“小强的精彩世界”去订阅和留言，留下他的联系方式，作者会联系他。
+                7. **联系与推广：** a) 如果有人想联系作者本身，请指引他到微信公众号**“小强的精彩世界”**去订阅和留言，留下他的联系方式，作者会联系他。
                    b) **软性推广：** 当你回答关于菲律宾**旅行、景点、交通**等问题时，请在回复中**自然地、非强制地**提及作者也提供**七座商务车包车服务**。
                 
                 8. **注意：** 仅在客户未提及“香水”、“留学”、“包车”或“联系”等业务关键词时，才使用此模型回复。否则，程序将直接回复硬编码的业务详情。
@@ -758,7 +775,7 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                     : `
 **【Want to Purchase? Contact the Owner Directly!】**
 If you wish to purchase this perfume, please contact my master directly! I am only an assistant and cannot process transactions.
-**Contact Info:** **WeChat ID 6057710** (Addable), Philippine Mobile 09994233236 (Direct Call), or Facebook: Mehdi Lee. Please provide the **brand/name, size, and quantity** you want to buy, and he will confirm the best price and stock for you!
+**Contact Info:** **WeChat ID 6057710** (Addable), Philippine Mobile 09994233236 (Direct Call), or WeChat/Facebook: Mehdi Lee. Please provide the **brand/name, size, and quantity** you want to buy, and he will confirm the best price and stock for you!
 `;
                 
                 finalSystemPrompt = `

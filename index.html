@@ -520,7 +520,9 @@ If you have any questions about insurance, psychology, travel, study abroad in t
 
                 // 记录历史并恢复按钮
                 chatHistory.push({ role: "user", parts: [{ text: text }] });
-                chatHistory.push({ role: "model", parts: [{ text: businessMessage }] });
+                // 这里我们简化一下，只记录用户消息，模型消息会在后面 API 调用时记录
+                // 为了保持历史记录准确性，这里可以不记录，API 调用后再统一记录
+
                 userInput.disabled = false;
                 sendButton.disabled = false;
                 return; // 结束函数，不调用 API
@@ -536,6 +538,7 @@ If you have any questions about insurance, psychology, travel, study abroad in t
             chatContainer.scrollTop = chatContainer.scrollHeight;
 
             // B. 准备 API 调用
+            // 将用户消息添加到历史记录，准备发送
             chatHistory.push({ role: "user", parts: [{ text: text }] });
             
             let articleList = '';
@@ -560,14 +563,24 @@ If you have any questions about insurance, psychology, travel, study abroad in t
                 --- 文章列表（用于推荐，请勿直接发送给用户）---
                 ${articleList}
             `;
-
+            
+            // ======================================================
+            // ⚠️ 修正后的 PAYLOAD 结构
+            // 1. 移除了 'config' 字段
+            // 2. 将 'systemInstruction' 提升到顶级
+            // ======================================================
             const payload = {
                 contents: chatHistory,
-                config: {
-                    systemInstruction: {
-                        parts: [{ text: systemPrompt }]
-                    }
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
                 }
+                // 如果需要配置温度(temperature)等，可以添加 generationConfig
+                /*
+                generationConfig: {
+                    temperature: 0.8,
+                    maxOutputTokens: 2048
+                }
+                */
             };
 
             let modelReplyText = "抱歉，系统暂时出了点小问题。";
@@ -605,7 +618,11 @@ If you have any questions about insurance, psychology, travel, study abroad in t
                         modelReplyText = fullModelResponse.replace(/\[RECOMMEND_ID: (A\d{3}|NONE)\]/i, '').trim();
 
                         if (recId !== 'NONE') {
-                            recommendedArticle = mockArticles.find(a => a.id === recId);
+                            // 查找文章
+                            if (typeof mockArticles !== 'undefined') {
+                                recommendedArticle = mockArticles.find(a => a.id === recId);
+                            }
+                            
                             // 如果推荐了不存在的文章，可以加上提示
                             if (!recommendedArticle) {
                                 modelReplyText += (lang === 'en' ? '\n\n(System Note: Recommended article ID is invalid.)' : '\n\n(系统提示: 推荐的文章ID无效。)');

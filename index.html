@@ -49,6 +49,13 @@
         .chat-message {
             animation: fadeIn 0.3s ease-out;
         }
+        /* 确保图片在聊天气泡内能自适应 */
+        .model-message img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen font-sans antialiased">
@@ -95,10 +102,7 @@
         const modelName = 'gemini-2.5-flash-preview-09-2025';
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
         
-        // 聊天历史，用于API请求
         let chatHistory = []; 
-        
-        // 链接模式：'zh' (中文原始链接) 或 'en' (英文翻译链接)
         let linkMode = localStorage.getItem('linkMode') || 'zh';
 
         // --- 2. DOM Elements ---
@@ -109,36 +113,97 @@
         const toggleLinkModeButton = document.getElementById('toggleLinkMode');
         const linkModeDisplay = document.getElementById('linkModeDisplay');
 
+        // --- 3. 业务详情数据 (硬编码，用于关键词触发) ---
+        const businessDetails = {
+            zh: {
+                perfume: `
+**【香水业务推广】**
+我们在马尼拉开了一家香水店，欢迎您了解和购买。我们的香水种类丰富，**货源来自美国、泰国和中国大陆**。价格范围覆盖广泛，**从一百比索（PHP 100）到三千比索（PHP 3000）不等**，顾客可以根据自己的预算和喜好选购。
 
-        // --- 3. Core Functions ---
+**快速提醒：** 您也可以咨询我们的留学咨询和包车服务。
+                `,
+                study: `
+**【菲律宾留学全流程付费咨询服务】**
+您好，很高兴您对我们的留学咨询服务感兴趣。
+我的主人小强老师拥有在菲律宾的陪读经验，能够为您提供最接地气、最专业的指导。
+**服务内容包括：** 涵盖孩子从中国到菲律宾留学的整个流程，包括择校建议、申请材料准备、签证办理、到菲后的住宿安顿等全方位服务。
+**收费模式：** 本服务为**付费咨询**，欢迎随时与我联系，咨询详细的收费标准和合作流程！
+
+**快速提醒：** 您也可以咨询我们的香水销售和包车服务。
+                `,
+                charter: `
+**【七座商务车包车服务】**
+我们提供**七座商务车包车服务**，非常适合在马尼拉进行短途观光或商务出行的游客。车辆舒适且配有专业司机，能为您在马尼拉的行程提供安全便捷的交通方案。服务详情和报价请随时咨询。
+
+**快速提醒：** 您也可以咨询我们的香水销售和留学咨询服务。
+                `,
+                contact: `
+很高兴您想联系我的主人！请扫描下方二维码（**小强的精彩世界公众号**）或通过微信号联系。主人小强老师将会在看到信息后尽快回复您。
+
+![微信二维码](images/wechat_qr.jpg)
+
+**提示：** 如果您是咨询留学、香水或包车业务，请在添加后告知，以便我们更高效地为您服务。
+                `
+            },
+            en: {
+                perfume: `
+**【Perfume Business Promotion】**
+We operate a perfume shop in Manila. Our selection is diverse, featuring scents sourced from **the United States, Thailand, and Mainland China**. The pricing is flexible, ranging **from one hundred pesos (PHP 100) up to three thousand pesos (PHP 3000)**. Feel free to contact me for inquiries and purchases.
+
+**Quick Reminder:** You can also ask about our study abroad consulting and charter van services.
+                `,
+                study: `
+**【Full-Process Paid Consultation for Study in the Philippines】**
+Hello! We are delighted you are interested in our study abroad consulting service.
+My master, Teacher Xiaoqiang, leverages his personal experience as a co-resident parent in the Philippines to offer practical and professional guidance.
+**Service includes:** Comprehensive support for the entire process, including school selection, application, visa processing, and settlement arrangements upon arrival.
+**Fee Structure:** This is a **paid consultation** service. Please contact us for detailed pricing and collaboration steps!
+
+**Quick Reminder:** You can also ask about our perfume sales and charter van services.
+                `,
+                charter: `
+**【7-Seater Van Charter Service】**
+We provide a **7-seater business van charter service**, ideal for short-distance tours or business travel within Manila. Our vehicles are comfortable and come with a professional driver, offering a safe and convenient transportation option. Please contact us for service details and quotes.
+
+**Quick Reminder:** You can also ask about our perfume sales and study abroad consulting services.
+                `,
+                contact: `
+Great! You can reach my master, Teacher Xiaoqiang, via the QR code below (for the official account: **Xiaoqiang’s Wonderful World**) or by WeChat ID. He will get back to you as soon as possible.
+
+![WeChat QR Code](images/wechat_qr.jpg)
+
+**Note:** If you are inquiring about study abroad, perfume, or charter services, please mention it after adding to help us serve you more efficiently.
+                `
+            }
+        };
+
+
+        // --- 4. Core Functions ---
 
         /**
-         * 初始化或重置应用状态
+         * 获取当前语言的欢迎语
+         * @param {'zh'|'en'} lang - 目标语言
          */
-        function initializeApp() {
-            // 检查 mockArticles 是否可用 (现在使用 var 声明，应该可以在这里访问)
-            if (typeof mockArticles === 'undefined') {
-                 showInitError();
-                 return;
-            }
+        function getInitialMessage(lang) {
+            // UPDATED CHINESE WELCOME MESSAGE
+            const zhMessage = `你好啊！我是你的公众号小助理**小小强**。我的主人**小强老师**是一位高学历、高知识结构、有广东、北京等多地丰富经历生活、热爱公益，曾被央视《人物》专栏报道过的有志人士。通晓计算机、信息技术、企业管理（10年以上工作经历）、人寿保险（12年以上工作经历）、心理学（研究血型与性格相关20年）。10多年以来撰写了400多篇文章。**2023年以后带娃来菲律宾留学并旅居在此**，又撰写了很多有关菲律宾留学、旅行、生活的相关文章。
 
-            // 清空UI和历史记录
-            chatContainer.innerHTML = '';
-            chatHistory = [];
-            
-            // 首次启动时，显示助理的欢迎语
-            const initialMessage = "你好呀！我是你的公众号小助理**小小强**。我的主人小强老师是一位高学历、高知识结构、有广东、北京等多地丰富经历生活、热爱公益，曾被央视《人物》专栏报道过的有志人士，通晓计算机、信息技术、企业管理（10年以上工作经历）、人寿保险（12年以上工作经历）、心理学（研究血型与性格相关20年）。10多年以来撰写了400多篇文章。2023年以后带娃来菲律宾留学并旅居在此，又撰写了很多有关菲律宾留学、旅行、生活的相关文章。如果您有什么关于保险、心理、菲律宾旅行和生活，或者其他想聊的，尽管问我！";
-            displayMessage(initialMessage, 'model');
-            
-            // 更新链接模式UI
-            updateLinkModeUI();
+**我用了一年时间走遍了菲律宾，还开了一家香水店，买了一辆丰田七座商务车，并把中国孩子到菲律宾读中学和考大学的路全摸清了。**
 
-            // 恢复按钮状态
-            sendButton.disabled = false;
+如果您有关于保险、心理、菲律宾旅行、留学，马尼拉地区包车游、买香水和护肤品，或者其他想聊的，尽管问我！`;
+
+            // UPDATED ENGLISH WELCOME MESSAGE
+            const enMessage = `Hello! I am your official account assistant, **Xiao Xiaoqiang**. My master, **Teacher Mehdi**, is a highly educated and knowledgeable person with rich experience from various regions, including Guangdong and Beijing. He is a public-spirited individual who was once featured in CCTV's "People" column. He is proficient in Computer Science, Information Technology, Business Management (10+ years experience), Life Insurance (12+ years experience), and Psychology (20 years researching blood types and personality). He has authored over 400 articles in the last decade. **Since 2023, he has been residing in the Philippines, accompanying his child for school**, and has written many articles on Philippine study, travel, and life.
+
+**I spent a year traveling all over the Philippines, opened a perfume shop, bought a Toyota 7-seater business van, and thoroughly figured out the path for Chinese children to study in middle school and university in the Philippines.**
+
+If you have any questions about insurance, psychology, travel, study abroad in the Philippines, charter tours in the Manila area, buying perfumes and skincare products, or anything else you'd like to discuss, feel free to ask!`;
+
+            return lang === 'en' ? enMessage : zhMessage;
         }
 
         /**
-         * 显示初始化错误的函数（如果数据未加载）
+         * (其他辅助函数: showInitError, getProcessedUrl, updateLinkModeUI, toggleLinkMode, showStatusModal, showConfirmModal, copyArticleLink - 保持不变)
          */
         function showInitError() {
             chatContainer.innerHTML = `
@@ -150,27 +215,13 @@
             `;
             sendButton.disabled = true;
         }
-
-
-        /**
-         * 根据当前模式返回文章链接
-         * @param {string} originalUrl - 文章的原始中文URL
-         * @returns {string} - 处理后的链接
-         */
         function getProcessedUrl(originalUrl) {
             if (linkMode === 'en') {
-                // 英文翻译模式：使用 Google Translate 封装 URL
                 const encodedUrl = encodeURIComponent(originalUrl);
-                // sl=zh-CN (源语言：中文简体), tl=en (目标语言：英文)
                 return `https://translate.google.com/translate?sl=zh-CN&tl=en&u=${encodedUrl}`;
             }
-            // 中文模式：返回原始链接
             return originalUrl;
         }
-
-        /**
-         * 更新链接模式的显示和按钮文本
-         */
         function updateLinkModeUI() {
             if (linkMode === 'zh') {
                 linkModeDisplay.textContent = '链接模式：中文 (默认)';
@@ -185,62 +236,34 @@
             }
             localStorage.setItem('linkMode', linkMode);
         }
-
-        /**
-         * 切换链接模式
-         */
         function toggleLinkMode() {
             linkMode = linkMode === 'zh' ? 'en' : 'zh';
             updateLinkModeUI();
-            // 在切换模式后，清除旧的推荐卡片，防止误解
             const recCards = document.querySelectorAll('.recommendation-card');
             recCards.forEach(card => card.remove());
         }
-
-        /**
-         * 在聊天界面显示消息
-         * @param {string} text - 消息文本
-         * @param {'user'|'model'} role - 消息发送者角色
-         */
-        function displayMessage(text, role, recommendation = null) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `chat-message mb-4 p-3 rounded-lg max-w-[85%] shadow-md ${role === 'user' ? 'user-message ml-auto' : 'model-message mr-auto'}`;
-            
-            // 使用 Markdown 解析器进行基本格式化
-            const formattedText = marked.parse(text); 
-            messageDiv.innerHTML = formattedText;
-            
-            // 如果有推荐，添加推荐卡片
-            if (recommendation) {
-                const recDiv = document.createElement('div');
-                recDiv.className = 'mt-3 pt-3 border-t border-gray-300 recommendation-card';
-                
-                // 获取处理后的链接
-                const processedUrl = getProcessedUrl(recommendation.url);
-                const linkText = linkMode === 'en' ? '（英文翻译）' : '（中文）';
-
-                recDiv.innerHTML = `
-                    <p class="font-bold text-gray-700 mb-1">🎯 小强推荐文章 ${linkText}:</p>
-                    <a href="${processedUrl}" target="_blank" class="block text-primary hover:text-blue-600 font-semibold truncate hover:underline mb-2">
-                        ${recommendation.title}
-                    </a>
-                    <div class="flex items-center space-x-2">
-                        <span class="text-sm font-mono bg-gray-200 text-gray-700 px-2 py-1 rounded">ID: ${recommendation.id}</span>
-                        <button onclick="copyArticleLink('${processedUrl}', '${recommendation.id}')" class="px-2 py-1 text-xs rounded-full bg-accent text-white hover:bg-green-600 transition duration-150">
-                            复制链接
+        function showStatusModal(message) {
+            const modalId = 'statusModal';
+            let modal = document.getElementById(modalId);
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = modalId;
+                modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none';
+                modal.innerHTML = `
+                    <div class="bg-white p-6 rounded-xl shadow-2xl transform scale-95 transition-transform duration-300">
+                        <p id="modalMessage" class="text-lg font-semibold text-gray-800 mb-4"></p>
+                        <button onclick="document.getElementById('${modalId}').classList.remove('opacity-100', 'pointer-events-auto'); document.getElementById('${modalId}').classList.add('opacity-0', 'pointer-events-none');" class="w-full py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition duration-150">
+                            确定
                         </button>
                     </div>
                 `;
-                messageDiv.appendChild(recDiv);
+                document.body.appendChild(modal);
             }
-
-            chatContainer.appendChild(messageDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+            document.getElementById('modalMessage').textContent = message;
+            setTimeout(() => {
+                modal.classList.add('opacity-100', 'pointer-events-auto');
+            }, 10);
         }
-
-        /**
-         * 复制文章链接到剪贴板 (使用 document.execCommand 兼容性更高)
-         */
         function copyArticleLink(url, id) {
             const textarea = document.createElement('textarea');
             textarea.value = url;
@@ -256,181 +279,8 @@
             document.body.removeChild(textarea);
 
             const statusText = success ? `已复制文章 ${id} 的链接！` : '复制失败，请手动复制。';
-            // 使用自定义模态框代替 alert
             showStatusModal(statusText); 
         }
-
-        /**
-         * 显示状态消息的自定义模态框
-         * @param {string} message 
-         */
-        function showStatusModal(message) {
-            const modalId = 'statusModal';
-            let modal = document.getElementById(modalId);
-            
-            if (!modal) {
-                modal = document.createElement('div');
-                modal.id = modalId;
-                modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none';
-                modal.innerHTML = `
-                    <div class="bg-white p-6 rounded-xl shadow-2xl transform scale-95 transition-transform duration-300">
-                        <p id="modalMessage" class="text-lg font-semibold text-gray-800 mb-4"></p>
-                        <button onclick="document.getElementById('${modalId}').classList.remove('opacity-100', 'pointer-events-auto'); document.getElementById('${modalId}').classList.add('opacity-0', 'pointer-events-none');" class="w-full py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition duration-150">
-                            确定
-                        </button>
-                    </div>
-                `;
-                document.body.appendChild(modal);
-            }
-
-            document.getElementById('modalMessage').textContent = message;
-            // 确保先应用 scale-95 和 opacity-0，然后延迟应用 transform 和 opacity-100
-            setTimeout(() => {
-                modal.classList.add('opacity-100', 'pointer-events-auto');
-            }, 10);
-        }
-
-
-        /**
-         * 主逻辑：发送消息并获取回复
-         */
-        async function sendMessage() {
-            const text = userInput.value.trim();
-            if (!text) return;
-
-            // 1. UI更新
-            userInput.value = '';
-            sendButton.disabled = true;
-            displayMessage(text, 'user');
-
-            // 2. 构造历史记录和新消息
-            chatHistory.push({ role: "user", parts: [{ text: text }] });
-            
-            // 3. 构造系统指令 (System Prompt) - 注入人设和文章库
-            let articleList = '';
-            if (typeof mockArticles !== 'undefined') {
-                articleList = mockArticles.map(a => 
-                    `ID: ${a.id}, 标题: ${a.title}, 侧重点/摘要: ${a.summary}`
-                ).join('\n');
-            } else {
-                 articleList = '文章列表不可用，请勿推荐。';
-            }
-
-
-            const systemPrompt = `
-                你是一个幽默、亲切、爱互动的公众号助理，名字叫“小小强”。你的主要任务是：
-                1. **扮演作者分身：** 你是作者本人（一位保险专家），过去在广东、北京生活，但从2023年开始，因为陪孩子读书，现定居在菲律宾。你必须主动、自然地将“北京生活”、“心理学”、“菲律宾陪读经历”、“跨国生活感受”等真实故事融入聊天中。
-                2. **进行亲切互动：** 对话开始时或话题轻松时，可以适当讲个小笑话或进行幽默问候。
-                3. **精准文章推荐：** 当读者的话题与保险、菲律宾生活、旅游或留学相关时，你必须从下面的“文章列表”中选择一篇最精准的文章进行推荐。
-                4. **推荐格式：** 必须在回复的最后一行以严格的格式输出推荐ID，格式为：[RECOMMEND_ID: Axxx]，其中 Axxx 是文章ID。如果没有合适的文章，则回复[RECOMMEND_ID: NONE]。
-                5. **精准区分：** 对于相似主题的文章（如保险），你必须根据读者是问“需求评估”还是问“代理人选择”来区分推荐文章。
-
-                6. **联系主人：** 如果有人想联系作者本身，请指引他到微信公众号“小强的精彩世界”去订阅和留言，留下他的联系方式，作者会联系他。
-
-
-                --- 文章列表（用于推荐，请勿直接发送给用户）---
-                ${articleList}
-            `;
-
-            // 🌟 修正 API 400 错误：将 systemInstruction 提升到顶级字段，移除 'config' 字段
-            const payload = {
-                contents: chatHistory,
-                systemInstruction: {
-                    parts: [{ text: systemPrompt }]
-                }
-            };
-
-            let responseText = "抱歉，系统暂时出了点小问题。";
-            let recommendedArticle = null;
-
-            try {
-                // 4. API Call with Exponential Backoff
-                const maxRetries = 3;
-                let response = null;
-                for (let i = 0; i < maxRetries; i++) {
-                    try {
-                        response = await fetch(apiUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
-                        if (response.status !== 429) break; // If not rate limit, break retry loop
-                        
-                        const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                        console.log(`API 429 encountered, retrying in ${delay / 1000}s...`);
-
-                    } catch (fetchError) {
-                        responseText = `API请求失败 (Fetch Error): ${fetchError.message}`;
-                        throw fetchError;
-                    }
-                }
-
-                // Handle HTTP errors
-                if (!response.ok) {
-                    const errorJson = await response.json();
-                    const errorMessage = errorJson.error?.message || response.statusText;
-                    responseText = `API请求失败，状态码 ${response.status}。详细错误: ${errorMessage}`;
-                    
-                    // 特殊处理 403 错误，提醒用户检查 Key
-                    if (response.status === 403) {
-                         responseText += "\n\n⚠️ 403错误：请检查您的 API Key 是否正确粘贴或是否已启用权限。";
-                    }
-                } else {
-                    const result = await response.json();
-                    const modelResponse = result.candidates?.[0]?.content?.parts?.[0]?.text || responseText;
-                    
-                    // 5. 提取推荐ID
-                    const match = modelResponse.match(/\[RECOMMEND_ID: (A\d{3}|NONE)\]/i);
-                    const recId = match ? match[1] : 'NONE';
-
-                    // 6. 清理回复文本
-                    responseText = modelResponse.replace(/\[RECOMMEND_ID: (A\d{3}|NONE)\]/i, '').trim();
-
-                    // 7. 查找推荐文章
-                    if (recId !== 'NONE') {
-                        recommendedArticle = mockArticles.find(a => a.id === recId);
-                        if (!recommendedArticle) {
-                            responseText += `\n\n(系统提示: 小强推荐了不存在的文章ID: ${recId})`;
-                        }
-                    }
-
-                    // 8. 记录历史 (使用正确的 role: 'model')
-                    chatHistory.push({ role: "model", parts: [{ text: modelResponse }] });
-                }
-
-            } catch (error) {
-                console.error("Critical error in sendMessage:", error);
-                responseText = `Api错误，请查看控制台。${error.message}`;
-            }
-            
-            // 9. 最终显示回复
-            displayMessage(responseText, 'model', recommendedArticle);
-            sendButton.disabled = false;
-        }
-
-        // --- 4. Event Listeners ---
-
-        sendButton.addEventListener('click', sendMessage);
-        userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !sendButton.disabled) {
-                sendMessage();
-            }
-        });
-
-        // 切换链接模式
-        toggleLinkModeButton.addEventListener('click', toggleLinkMode);
-        
-        resetButton.addEventListener('click', () => {
-            // 使用自定义模态框代替 confirm()
-            showConfirmModal("确定要重置对话吗？重置后小强将忘记所有之前的聊天内容。", initializeApp);
-        });
-
-        /**
-         * 显示确认对话框的自定义模态框
-         * @param {string} message 
-         * @param {Function} onConfirmCallback 
-         */
         function showConfirmModal(message, onConfirmCallback) {
             const modalId = 'confirmModal';
             let modal = document.getElementById(modalId);
@@ -462,7 +312,6 @@
                 modal.classList.add('opacity-0', 'pointer-events-none');
             };
 
-            // 移除旧监听器，防止重复执行
             const okBtn = document.getElementById('confirmOkBtn');
             const cancelBtn = document.getElementById('confirmCancelBtn');
 
@@ -488,13 +337,262 @@
             }, 10);
         }
 
-        // --- 5. Initialization ---
+
+        /**
+         * 在聊天界面显示消息
+         */
+        function displayMessage(text, role, recommendation = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message mb-4 p-3 rounded-lg max-w-[85%] shadow-md ${role === 'user' ? 'user-message ml-auto' : 'model-message mr-auto'}`;
+            
+            // 使用 Markdown 解析器进行基本格式化
+            const formattedText = marked.parse(text); 
+            messageDiv.innerHTML = formattedText;
+            
+            if (recommendation) {
+                const recDiv = document.createElement('div');
+                recDiv.className = 'mt-3 pt-3 border-t border-gray-300 recommendation-card';
+                
+                const processedUrl = getProcessedUrl(recommendation.url);
+                const linkText = linkMode === 'en' ? '（英文翻译）' : '（中文）';
+
+                recDiv.innerHTML = `
+                    <p class="font-bold text-gray-700 mb-1">🎯 小强推荐文章 ${linkText}:</p>
+                    <a href="${processedUrl}" target="_blank" class="block text-primary hover:text-blue-600 font-semibold truncate hover:underline mb-2">
+                        ${recommendation.title}
+                    </a>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm font-mono bg-gray-200 text-gray-700 px-2 py-1 rounded">ID: ${recommendation.id}</span>
+                        <button onclick="copyArticleLink('${processedUrl}', '${recommendation.id}')" class="px-2 py-1 text-xs rounded-full bg-accent text-white hover:bg-green-600 transition duration-150">
+                            复制链接
+                        </button>
+                    </div>
+                `;
+                messageDiv.appendChild(recDiv);
+            }
+
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+
+        /**
+         * 确定用户输入的语言
+         */
+        function detectInputLanguage(text) {
+            const englishWords = text.split(/\s+/).filter(word => word.match(/[a-zA-Z]/)).length;
+            const totalLength = text.length;
+
+            if (totalLength > 10 && englishWords / totalLength > 0.4) {
+                return 'en';
+            }
+            if (text.match(/[\u4e00-\u9fa5]/)) {
+                return 'zh';
+            }
+            return 'zh';
+        }
+        
+        /**
+         * 业务关键词检测函数 (不调用 API)
+         */
+        function checkBusinessKeyword(text) {
+            const lowerText = text.toLowerCase();
+            
+            // 1. 联系/微信关键词
+            if (lowerText.includes('联系') || lowerText.includes('contact') || lowerText.includes('微信') || lowerText.includes('wechat') || lowerText.includes('reach out')) {
+                return 'contact';
+            }
+            // 2. 香水关键词 (增加护肤品、店铺等)
+            if (lowerText.includes('香水') || lowerText.includes('perfume') || lowerText.includes('scent') || lowerText.includes('shop') || lowerText.includes('护肤品') || lowerText.includes('skincare')) {
+                return 'perfume';
+            }
+            // 3. 留学咨询关键词 (增加学校、中学、大学等)
+            if (lowerText.includes('留学') || lowerText.includes('咨询') || lowerText.includes('study') || lowerText.includes('abroad') || lowerText.includes('consult') || lowerText.includes('学校') || lowerText.includes('中学') || lowerText.includes('大学') || lowerText.includes('school')) {
+                return 'study';
+            }
+            // 4. 包车/租车关键词 (增加丰田、游、玩等)
+            if (lowerText.includes('包车') || lowerText.includes('租车') || lowerText.includes('charter') || lowerText.includes('van') || lowerText.includes('car service') || lowerText.includes('丰田') || lowerText.includes('toyota') || lowerText.includes('游') || lowerText.includes('玩')) {
+                return 'charter';
+            }
+            return null; // 没有匹配到业务关键词
+        }
+
+        /**
+         * 初始化或重置应用状态
+         */
+        function initializeApp() {
+            if (typeof mockArticles === 'undefined') {
+                 showInitError();
+                 return;
+            }
+
+            chatContainer.innerHTML = '';
+            chatHistory = [];
+            
+            // 首次启动时，显示助理的欢迎语 (默认为中文)
+            const initialMessage = getInitialMessage('zh');
+            displayMessage(initialMessage, 'model');
+            
+            updateLinkModeUI();
+            sendButton.disabled = false;
+        }
+
+        /**
+         * 主逻辑：发送消息并获取回复
+         */
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            // 1. UI更新
+            userInput.value = '';
+            sendButton.disabled = true;
+            displayMessage(text, 'user');
+
+            // 2. 语言检测和业务关键词检测
+            const lang = detectInputLanguage(text);
+            const businessKey = checkBusinessKeyword(text);
+
+            // 3. 如果检测到业务关键词，直接返回硬编码的业务详情
+            if (businessKey) {
+                const businessMessage = businessDetails[lang][businessKey];
+                displayMessage(businessMessage, 'model');
+
+                // 记录历史并恢复按钮
+                chatHistory.push({ role: "user", parts: [{ text: text }] });
+                chatHistory.push({ role: "model", parts: [{ text: businessMessage }] });
+                sendButton.disabled = false;
+                return; // 结束函数，不调用 API
+            }
+
+            // 4. 如果是外国客户的首次打招呼，直接回复英文欢迎语 (增强语言切换逻辑)
+            const simpleGreetings = ['hello', 'hi', 'hey', '你好', '您好'];
+            const isSimpleGreeting = simpleGreetings.some(g => text.toLowerCase().includes(g));
+
+            if (lang === 'en' && isSimpleGreeting) {
+                 const initialMessage = getInitialMessage('en');
+                 displayMessage(initialMessage, 'model');
+                 
+                 chatHistory.push({ role: "user", parts: [{ text: text }] });
+                 chatHistory.push({ role: "model", parts: [{ text: initialMessage }] });
+                 sendButton.disabled = false;
+                 return; // 结束函数，不调用 API
+            }
+            
+            // 5. 否则，继续执行原有的 Gemini API 调用逻辑
+            chatHistory.push({ role: "user", parts: [{ text: text }] });
+            
+            // 构造系统指令 (System Prompt) - 注入人设和文章库
+            let articleList = '';
+            if (typeof mockArticles !== 'undefined') {
+                articleList = mockArticles.map(a => 
+                    `ID: ${a.id}, 标题: ${a.title}, 侧重点/摘要: ${a.summary}`
+                ).join('\n');
+            } else {
+                 articleList = '文章列表不可用，请勿推荐。';
+            }
+
+            const systemPrompt = `
+                你是一个幽默、亲切、爱互动的公众号助理，名字叫“小小强”。你的主要任务是：
+                1. **扮演作者分身：** 你是作者本人（一位保险专家），过去在广东、北京生活，但从2023年开始，因为陪孩子读书，现定居在菲律宾。你必须主动、自然地将“北京生活”、“心理学”、“菲律宾陪读经历”、“跨国生活感受”等真实故事融入聊天中。
+                2. **语言保持一致：** 必须使用客户输入的语言（中文或英文）进行回复。
+                3. **精准文章推荐：** 当读者的话题与保险、心理、菲律宾生活、旅游或留学相关时，你必须从下面的“文章列表”中选择一篇最精准的文章进行推荐。
+                4. **推荐格式：** 必须在回复的最后一行以严格的格式输出推荐ID，格式为：[RECOMMEND_ID: Axxx]，其中 Axxx 是文章ID。如果没有合适的文章，则回复[RECOMMEND_ID: NONE]。
+                5. **联系主人：** 如果有人想联系作者本身，请指引他到微信公众号“小强的精彩世界”去订阅和留言，留下他的联系方式，作者会联系他。
+                6. **注意：** 仅在客户未提及“香水”、“留学”、“包车”或“联系”等业务关键词时，才使用此模型回复。否则，程序将直接回复硬编码的业务详情。
+
+                --- 文章列表（用于推荐，请勿直接发送给用户）---
+                ${articleList}
+            `;
+
+            const payload = {
+                contents: chatHistory,
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                }
+            };
+
+            let responseText = "抱歉，系统暂时出了点小问题。";
+            let recommendedArticle = null;
+
+            try {
+                // API Call with Exponential Backoff
+                const maxRetries = 3;
+                let response = null;
+                for (let i = 0; i < maxRetries; i++) {
+                    try {
+                        response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        if (response.status !== 429) break; 
+                        
+                        const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        console.log(`API 429 encountered, retrying in ${delay / 1000}s...`);
+
+                    } catch (fetchError) {
+                        responseText = `API请求失败 (Fetch Error): ${fetchError.message}`;
+                        throw fetchError;
+                    }
+                }
+
+                if (!response.ok) {
+                    const errorJson = await response.json();
+                    const errorMessage = errorJson.error?.message || response.statusText;
+                    responseText = `API请求失败，状态码 ${response.status}。详细错误: ${errorMessage}`;
+                    if (response.status === 403) {
+                         responseText += "\n\n⚠️ 403错误：请检查您的 API Key 是否正确粘贴或是否已启用权限。";
+                    }
+                } else {
+                    const result = await response.json();
+                    const modelResponse = result.candidates?.[0]?.content?.parts?.[0]?.text || responseText;
+                    
+                    const match = modelResponse.match(/\[RECOMMEND_ID: (A\d{3}|NONE)\]/i);
+                    const recId = match ? match[1] : 'NONE';
+
+                    responseText = modelResponse.replace(/\[RECOMMEND_ID: (A\d{3}|NONE)\]/i, '').trim();
+
+                    if (recId !== 'NONE') {
+                        recommendedArticle = mockArticles.find(a => a.id === recId);
+                        if (!recommendedArticle) {
+                            responseText += `\n\n(系统提示: 小强推荐了不存在的文章ID: ${recId})`;
+                        }
+                    }
+
+                    chatHistory.push({ role: "model", parts: [{ text: modelResponse }] });
+                }
+
+            } catch (error) {
+                console.error("Critical error in sendMessage:", error);
+                responseText = `Api错误，请查看控制台。${error.message}`;
+            }
+            
+            // 最终显示回复
+            displayMessage(responseText, 'model', recommendedArticle);
+            sendButton.disabled = false;
+        }
+
+        // --- 6. Event Listeners & Initialization ---
+
+        sendButton.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !sendButton.disabled) {
+                sendMessage();
+            }
+        });
+
+        toggleLinkModeButton.addEventListener('click', toggleLinkMode);
+        
+        resetButton.addEventListener('click', () => {
+            showConfirmModal("确定要重置对话吗？重置后小强将忘记所有之前的聊天内容。", initializeApp);
+        });
+
         document.addEventListener('DOMContentLoaded', () => {
-            // 确保在 DOM 加载完成后，并且 mockArticles（从 articles.js）被加载后再运行
             if (typeof mockArticles !== 'undefined') {
                 initializeApp();
             } else {
-                // 如果 articles.js 404 失败，会进入这个分支，显示错误信息并禁用按钮
                 showInitError(); 
             }
         });

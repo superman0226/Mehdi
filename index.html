@@ -469,52 +469,65 @@ If you have any questions about insurance, psychology, travel, study abroad in t
 
 
         /**
-         * 确定用户输入的语言 (修复和优化后的逻辑)
-         * 只要包含中文字符，就优先判定为中文 (处理中英文混合输入)。
-         * 如果不含中文但有英文，则判定为英文。
+         * 确定用户输入的语言 (逻辑不变，已在上一轮修复)
          */
         function detectInputLanguage(text) {
-            // 1. 检查中文字符（\u4e00-\u9fa5 是汉字的 Unicode 范围）
             const chineseChars = text.match(/[\u4e00-\u9fa5]/g)?.length || 0;
+            const englishLetters = text.match(/[a-zA-Z]/g)?.length || 0;
             
-            // 2. 如果包含中文字符，优先级最高，认定为中文。
             if (chineseChars > 0) {
                 return 'zh';
             }
             
-            // 3. 如果不含中文字符，但含有英文字母（例如 'perfume' 或 'Hi'），则认定为英文。
-            const englishLetters = text.match(/[a-zA-Z]/g)?.length || 0;
             if (englishLetters > 0) {
                 return 'en';
             }
             
-            // 4. 否则（纯数字、标点符号、空白），默认中文
             return 'zh';
         }
         
         /**
-         * 业务关键词检测函数 (不调用 API)
+         * 业务关键词检测函数 (修复重点在此处)
          */
         function checkBusinessKeyword(text) {
             const lowerText = text.toLowerCase();
             
+            // --- 排除性关键词列表 ---
+            // 如果输入包含这些疑问词/品牌词，则跳过硬编码，交给 AI 智能回答
+            const exclusionKeywords = ['哪个', '什么', '多少', '品牌', '型号', '价钱', 'which', 'what', 'how much', 'brand', 'price', 'specific', 'diro', 'dior']; 
+            
+            // 检查是否包含任何排除词
+            const isSpecificQuery = exclusionKeywords.some(keyword => lowerText.includes(keyword));
+
             // 1. 联系/微信关键词
             if (lowerText.includes('联系') || lowerText.includes('contact') || lowerText.includes('微信') || lowerText.includes('wechat') || lowerText.includes('reach out')) {
                 return 'contact';
             }
-            // 2. 香水关键词 (增加护肤品、店铺等)
-            if (lowerText.includes('香水') || lowerText.includes('perfume') || lowerText.includes('scent') || lowerText.includes('shop') || lowerText.includes('护肤品') || lowerText.includes('skincare')) {
-                return 'perfume';
+            
+            // 2. 香水关键词 
+            if ((lowerText.includes('香水') || lowerText.includes('perfume') || lowerText.includes('scent') || lowerText.includes('shop') || lowerText.includes('护肤品') || lowerText.includes('skincare'))) {
+                // 如果是通用询问（如 "Do you sell perfume?"），且不包含排除词，则返回硬编码。
+                // 如果是具体询问（如 "Do you have diro perfume?"），则返回 null，交给 AI。
+                if (!isSpecificQuery) {
+                    return 'perfume';
+                }
             }
-            // 3. 留学咨询关键词 (增加学校、中学、大学等)
-            if (lowerText.includes('留学') || lowerText.includes('咨询') || lowerText.includes('study') || lowerText.includes('abroad') || lowerText.includes('consult') || lowerText.includes('学校') || lowerText.includes('中学') || lowerText.includes('大学') || lowerText.includes('school')) {
-                return 'study';
+            
+            // 3. 留学咨询关键词
+            if ((lowerText.includes('留学') || lowerText.includes('咨询') || lowerText.includes('study') || lowerText.includes('abroad') || lowerText.includes('consult') || lowerText.includes('学校') || lowerText.includes('中学') || lowerText.includes('大学') || lowerText.includes('school'))) {
+                 if (!isSpecificQuery) {
+                    return 'study';
+                }
             }
-            // 4. 包车/租车关键词 (增加丰田、游、玩等)
-            if (lowerText.includes('包车') || lowerText.includes('租车') || lowerText.includes('charter') || lowerText.includes('van') || lowerText.includes('car service') || lowerText.includes('丰田') || lowerText.includes('toyota') || lowerText.includes('游') || lowerText.includes('玩')) {
-                return 'charter';
+            
+            // 4. 包车/租车关键词
+            if ((lowerText.includes('包车') || lowerText.includes('租车') || lowerText.includes('charter') || lowerText.includes('van') || lowerText.includes('car service') || lowerText.includes('丰田') || lowerText.includes('toyota') || lowerText.includes('游') || lowerText.includes('玩'))) {
+                 if (!isSpecificQuery) {
+                    return 'charter';
+                }
             }
-            return null; // 没有匹配到业务关键词
+            
+            return null; // 没有匹配到业务关键词 或 是过于具体的业务询问
         }
 
         // --- 修复后的完整 sendMessage 函数 (已包含 API 调用逻辑) ---

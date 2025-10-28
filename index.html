@@ -168,11 +168,26 @@
         // --- 3. 业务详情数据 (硬编码，用于关键词触发) ---
         const businessDetails = {
             zh: {
+                // 通用香水业务介绍 (用于触发“香水”等通用词时)
                 perfume: `
 **【香水业务推广】**
 我们在马尼拉开了一家香水店，欢迎您了解和购买。我们的香水种类丰富，**货源来自美国、泰国和中国大陆**。价格范围覆盖广泛，**从一百比索（PHP 100）到三千比索（PHP 3000）不等**，顾客可以根据自己的预算和喜好选购。
 
 **快速提醒：** 您也可以咨询我们的留学咨询和包车服务。
+                `,
+                // 价格/购买引导 (新增联系方式)
+                buy_price: `
+**【⚠️ 购买/价格咨询提醒 ⚠️】**
+您好！我是小助理，无法实时查询库存和价格。
+
+**请您务必联系我的主人**，提供您想购买的**香水品牌/名称、容量和数量**。
+
+**联系方式：**
+* **微信号/公众号：** 请扫描下方二维码 (中国人常用)
+* **Facebook 账户：** Mehdi Lee (外国人常用)
+* **菲律宾手机：** 09994233236 (可直接拨打)
+
+他会尽快回复您，为您确认最新的库存和最优惠的价格！
                 `,
                 study: `
 **【菲律宾留学全流程付费咨询服务】**
@@ -189,8 +204,16 @@
 
 **快速提醒：** 您也可以咨询我们的香水销售和留学咨询服务。
                 `,
+                // 通用联系引导 (新增联系方式)
                 contact: `
-很高兴您想联系我的主人！请扫描下方二维码（**小强的精彩世界公众号**）或通过微信号联系。主人小强老师将会在看到信息后尽快回复您。
+很高兴您想联系我的主人！
+
+**请选择最方便您的联系方式：**
+* **微信号/公众号：** 请扫描下方二维码 (中国人常用)
+* **Facebook 账户：** Mehdi Lee (外国人常用)
+* **菲律宾手机：** 09994233236 (可直接拨打)
+
+主人小强老师将会在看到信息后尽快回复您。
 
 ![微信二维码](images/wechat_qr.jpg)
 
@@ -198,11 +221,26 @@
                 `
             },
             en: {
+                // 通用香水业务介绍 (用于触发“perfume”等通用词时)
                 perfume: `
 **【Perfume Business Promotion】**
 We run a perfume shop here in Manila. Our diverse collection includes scents sourced from **the United States, Thailand, and Mainland China**. Prices are very flexible, ranging **from 100 PHP up to 3000 PHP**. Please feel free to inquire about our selection and make a purchase!
 
 **Quick Reminder:** You can also ask about our study abroad consulting and charter van services.
+                `,
+                 // 价格/购买引导 (新增联系方式)
+                buy_price: `
+**【⚠️ Purchase/Price Inquiry Alert ⚠️】**
+Hello! I am just an assistant and cannot check real-time stock or confirm prices.
+
+**You must contact my master directly** with the **perfume brand/name, size, and quantity** you wish to purchase.
+
+**Contact Details:**
+* **WeChat/Official Account:** Please scan the QR code below (Common for Chinese users)
+* **Facebook Account:** Mehdi Lee (Common for foreign users)
+* **Philippine Mobile:** 09994233236 (You can call directly)
+
+He will reply as soon as possible to confirm the latest stock and best price for you!
                 `,
                 study: `
 **【Full-Process Paid Consultation for Study in the Philippines】**
@@ -219,8 +257,16 @@ We provide a **7-seater business van charter service**, perfect for short trips 
 
 **Quick Reminder:** You can also ask about our perfume sales and study abroad consulting services.
                 `,
+                // 通用联系引导 (新增联系方式)
                 contact: `
-Great! You can reach my master, Teacher Mehdi, via the QR code below (for the official account: **Xiaoqiang’s Wonderful World**) or by WeChat ID. He will get back to you as soon as possible.
+Great! You want to reach my master, Teacher Mehdi.
+
+**Please choose the most convenient contact method for you:**
+* **WeChat/Official Account:** Please scan the QR code below (Common for Chinese users)
+* **Facebook Account:** Mehdi Lee (Common for foreign users)
+* **Philippine Mobile:** 09994233236 (You can call directly)
+
+My master, Teacher Mehdi, will get back to you as soon as possible.
 
 ![WeChat QR Code](images/wechat_qr.jpg)
 
@@ -469,7 +515,7 @@ If you have any questions about insurance, psychology, travel, study abroad in t
 
 
         /**
-         * 确定用户输入的语言 (逻辑不变，已在上一轮修复)
+         * 确定用户输入的语言
          */
         function detectInputLanguage(text) {
             const chineseChars = text.match(/[\u4e00-\u9fa5]/g)?.length || 0;
@@ -487,47 +533,53 @@ If you have any questions about insurance, psychology, travel, study abroad in t
         }
         
         /**
-         * 业务关键词检测函数 (修复重点在此处)
+         * 业务关键词检测函数
          */
         function checkBusinessKeyword(text) {
             const lowerText = text.toLowerCase();
             
-            // --- 排除性关键词列表 ---
-            // 如果输入包含这些疑问词/品牌词，则跳过硬编码，交给 AI 智能回答
-            const exclusionKeywords = ['哪个', '什么', '多少', '品牌', '型号', '价钱', 'which', 'what', 'how much', 'brand', 'price', 'specific', 'diro', 'dior']; 
+            // --- 购买/价格/库存 关键词列表 (优先级最高) ---
+            const buyPriceKeywords = ['价格', '多少钱', '怎么买', '下单', '库存', '有没有货', 'price', 'how much', 'buy', 'order', 'stock', 'purchase', 'available'];
             
-            // 检查是否包含任何排除词
-            const isSpecificQuery = exclusionKeywords.some(keyword => lowerText.includes(keyword));
-
-            // 1. 联系/微信关键词
+            // 1. 联系/微信关键词 (保持高优先级)
             if (lowerText.includes('联系') || lowerText.includes('contact') || lowerText.includes('微信') || lowerText.includes('wechat') || lowerText.includes('reach out')) {
                 return 'contact';
             }
-            
-            // 2. 香水关键词 
-            if ((lowerText.includes('香水') || lowerText.includes('perfume') || lowerText.includes('scent') || lowerText.includes('shop') || lowerText.includes('护肤品') || lowerText.includes('skincare'))) {
-                // 如果是通用询问（如 "Do you sell perfume?"），且不包含排除词，则返回硬编码。
-                // 如果是具体询问（如 "Do you have diro perfume?"），则返回 null，交给 AI。
-                if (!isSpecificQuery) {
-                    return 'perfume';
-                }
+
+            // 2. 购买/价格关键词 (赋予高优先级)
+            const isBuyPriceQuery = buyPriceKeywords.some(keyword => lowerText.includes(keyword));
+            if (isBuyPriceQuery) {
+                return 'buy_price'; // 返回引导联系真人的硬编码类型
             }
             
-            // 3. 留学咨询关键词
+            // 3. 香水关键词 (现在仅用于通用业务描述)
+            if (lowerText.includes('香水') || lowerText.includes('perfume') || lowerText.includes('scent') || lowerText.includes('shop') || lowerText.includes('护肤品') || lowerText.includes('skincare')) {
+                
+                // 排除性关键词：用于区分通用介绍和智能回复
+                // 包含 "Dior" 或 "哪种香水" 等具体名词时，应该走 AI 智能回复 (返回 null)
+                const specificKeywords = ['哪种', '什么牌子', '牌子', '品牌', '型号', 'type', 'brand', 'model', 'dior', 'chanel', 'gucci', 'versace', 'hermes', 'bvlgari']; 
+                
+                const isSpecificBrandQuery = specificKeywords.some(keyword => lowerText.includes(keyword));
+
+                // 如果包含香水通用词，但不包含具体的品牌/型号，也不包含购买/价格词，则返回通用介绍。
+                if (!isSpecificBrandQuery) {
+                     return 'perfume';
+                }
+                
+                // 如果包含香水通用词，但同时包含具体的品牌/型号，则返回 null，走 AI 智能回复。
+            }
+            
+            // 4. 留学咨询关键词
             if ((lowerText.includes('留学') || lowerText.includes('咨询') || lowerText.includes('study') || lowerText.includes('abroad') || lowerText.includes('consult') || lowerText.includes('学校') || lowerText.includes('中学') || lowerText.includes('大学') || lowerText.includes('school'))) {
-                 if (!isSpecificQuery) {
-                    return 'study';
-                }
+                return 'study';
             }
             
-            // 4. 包车/租车关键词
+            // 5. 包车/租车关键词
             if ((lowerText.includes('包车') || lowerText.includes('租车') || lowerText.includes('charter') || lowerText.includes('van') || lowerText.includes('car service') || lowerText.includes('丰田') || lowerText.includes('toyota') || lowerText.includes('游') || lowerText.includes('玩'))) {
-                 if (!isSpecificQuery) {
-                    return 'charter';
-                }
+                return 'charter';
             }
             
-            return null; // 没有匹配到业务关键词 或 是过于具体的业务询问
+            return null; // 没有匹配到业务关键词，或者是一个需要智能回复的具体业务询问
         }
 
         // --- 修复后的完整 sendMessage 函数 (已包含 API 调用逻辑) ---
@@ -549,8 +601,16 @@ If you have any questions about insurance, psychology, travel, study abroad in t
             if (businessKey) {
                 // 使用检测到的语言返回硬编码的业务信息
                 const businessMessage = businessDetails[lang][businessKey]; 
-                displayMessage(businessMessage, 'model');
-
+                
+                // ⚠️ 如果触发了 buy_price 或 contact，还需要手动添加二维码图片（假设图片文件存在）
+                if (businessKey === 'contact' || businessKey === 'buy_price') {
+                    // 注意：这里我们使用 HTML 方式来渲染二维码，以确保其在 Markdown 环境下正确显示
+                    const messageWithImage = businessMessage + `<p class="mt-4"><img src="images/wechat_qr.jpg" alt="WeChat QR Code" class="max-w-xs mx-auto"></p>`;
+                    displayMessage(messageWithImage, 'model');
+                } else {
+                     displayMessage(businessMessage, 'model');
+                }
+                
                 // 记录历史并恢复按钮
                 chatHistory.push({ role: "user", parts: [{ text: text }] });
                 userInput.disabled = false;

@@ -392,13 +392,13 @@ If you have questions about **insurance, psychology, travel, study abroad in the
          */
         function updateLinkModeUI() {
             if (linkMode === 'zh') {
-                toggleLinkModeButton.textContent = '切换到英文翻译';
+                toggleLinkModeButton.textContent = '切换到英文翻译 | Switch to English';
                 userInput.placeholder = '输入读者的问题，与小强互动...';
                 toggleLinkModeButton.classList.remove('bg-green-600');
                 toggleLinkModeButton.classList.add('bg-primary');
             } else {
-                toggleLinkModeButton.textContent = 'Switch to Chinese';
-                userInput.placeholder = 'Ask a question to Xiaoqiang, the assistant...'; 
+                toggleLinkModeButton.textContent = 'Switch to Chinese'; // 修复了英文文本丢失问题
+                userInput.placeholder = 'Ask a question to Mehdi, the assistant...'; 
                 toggleLinkModeButton.classList.remove('bg-primary');
                 toggleLinkModeButton.classList.add('bg-green-600');
             }

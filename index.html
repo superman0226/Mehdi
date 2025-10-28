@@ -147,7 +147,6 @@
                 </div>
             </div>
         </div>
-
         <div class="bg-white p-4 rounded-xl shadow-lg flex items-center">
             <input type="text" id="userInput" class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition duration-150 mr-3" placeholder="输入读者的问题，与小强互动...">
             <button id="sendButton" class="p-3 bg-accent text-white rounded-lg hover:bg-green-600 transition duration-150 shadow-md flex items-center justify-center disabled:opacity-50" disabled>
@@ -168,9 +167,9 @@
         // ⚠️ 请在这里替换为您真实的 API Key
         const apiKey = "AIzaSyBQzyOL82wLI-vVtGZ1n5PX45HB5S2hyAo"; 
         // 建议使用最新的稳定模型，这里保留了用户提供的名称
-        // 稳定版，推荐使用
         const modelName = 'gemini-2.5-flash'; 
 
+        // 使用 REST API Endpoint
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
         
         let chatHistory = []; 
@@ -366,8 +365,7 @@ If you have questions about **insurance, psychology, travel, study abroad in the
             chatHistory = [];
             
             // 首次启动时，显示助理的欢迎语 (默认为中文)
-            const initialMessage = getInitialMessage('zh');
-            displayMessage(initialMessage, 'model');
+            displayMessage(getInitialMessage('zh'), 'model');
             
             // 动态更新所有 UI 提示
             updateLinkModeUI();
@@ -651,11 +649,15 @@ If you have questions about **insurance, psychology, travel, study abroad in the
             });
 
             // B. 准备 API 调用
+            // 确保历史记录中最后一个是用户当前输入
+            // 只保留最近的 MAX_HISTORY_MESSAGES - 1 条历史，为当前用户输入腾出空间
             let limitedHistory = [...chatHistory].slice(-(MAX_HISTORY_MESSAGES - 1)); 
             
-            // 修正点 1: 确保用户消息 Content 内部的 parts 对象中没有 role 字段
+            // 1. 将用户当前输入添加到历史列表末尾
+            // 注意：这里是 user 角色，用于 API 调用
             limitedHistory.push({ role: "user", parts: [{ text: text }] }); 
-
+            
+            // 2. 准备文章列表和 System Prompt
             let articleList = '';
             if (typeof mockArticles !== 'undefined') {
                 articleList = mockArticles.map(a => 
@@ -688,20 +690,16 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                 ${articleList}
             `;
             
-            // 1. 创建 System Content 对象 
-            const systemContent = {
-                role: "system", // 明确指定角色为 'system'
-                parts: [{ text: systemPrompt }]
-            };
-
-            // 2. 将 System Content 放在历史记录的最前面
-            let fullContents = [systemContent, ...limitedHistory];
-
+            // 核心修复点：使用 systemInstruction 字段，而不是 contents 数组中的 role: "system"
             // PAYLOAD 结构 
             const payload = {
-                contents: fullContents
+                // contents 数组只包含 user/model 消息，不再包含 role: "system"
+                contents: limitedHistory, 
+                config: {
+                    systemInstruction: systemPrompt // 使用专用的 systemInstruction 字段
+                }
             };
-
+            
             let modelReplyText = lang === 'en' ? "Sorry, the system is experiencing a temporary issue." : "抱歉，系统暂时出了点小问题。";
             let recommendedArticle = null;
             let fullModelResponse = null;
@@ -717,11 +715,12 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                 if (!response.ok) {
                     apiError = true;
                     const errorJson = await response.json();
+                    // 修复 API 400 错误的重点在于确保 payload 结构正确。如果 status 仍非 200，则显示错误信息。
                     const errorMessage = errorJson.error?.message || response.statusText;
                     modelReplyText = lang === 'en' 
                         ? `API Request Failed (Status ${response.status}). Error: ${errorMessage}`
                         : `API请求失败 (状态码 ${response.status})。错误信息: ${errorMessage}。请尝试重置对话或稍后再试。`;
-                    console.error('API Error:', errorJson); // 打印详细错误到控制台
+                    console.error('API Error:', errorJson); 
                 } else {
                     const result = await response.json();
                     
@@ -740,18 +739,17 @@ If you have questions about **insurance, psychology, travel, study abroad in the
 
                         if (recId !== 'NONE' && typeof mockArticles !== 'undefined') {
                             recommendedArticle = mockArticles.find(a => a.id === recId);
-                            if (!recommendedArticle) {
-                                modelReplyText += (lang === 'en' ? '\n\n(System Note: Recommended article ID is invalid.)' : '\n\n(系统提示: 推荐的文章ID无效。)');
-                            }
+                            // 即使文章找不到，也保持 modelReplyText 不变，但 recommendedArticle 为 null
                         }
                         
                         // 记录历史
-                        // 注意：这里只记录用户和模型的实际对话，不记录 system prompt
-                        chatHistory.push(limitedHistory[limitedHistory.length - 1]); 
+                        // chatHistory 应该记录用户发送给 API 的最后一条消息（limitedHistory的最后一个元素）
+                        chatHistory = [...chatHistory.slice(-(MAX_HISTORY_MESSAGES - 2)), 
+                            limitedHistory[limitedHistory.length - 1], // 用户消息
+                            { role: "model", parts: [{ text: fullModelResponse }] } // 模型返回的完整消息（包含 RECOMMEND_ID）
+                        ];
                         
-                        // 修正点 2: 确保模型消息 Content 内部的 parts 对象中没有 role 字段
-                        chatHistory.push({ role: "model", parts: [{ text: fullModelResponse }] }); 
-                        
+                        // 确保 chatHistory 不超出限制
                         if (chatHistory.length > MAX_HISTORY_MESSAGES) {
                             chatHistory = chatHistory.slice(-MAX_HISTORY_MESSAGES);
                         }
@@ -768,7 +766,7 @@ If you have questions about **insurance, psychology, travel, study abroad in the
             
             // C. 移除加载提示并显示最终回复
             if (loadingIndicator) {
-                // 避免在 chatContainer 已经滚动到底部时，将加载指示器单独移除。改为原地更新。
+                // 原地更新加载指示器为最终消息气泡
                 loadingIndicator.id = ''; 
                 loadingIndicator.innerHTML = ''; 
                 loadingIndicator.className = `chat-message mb-4 p-3 model-message mr-auto rounded-lg max-w-[85%] shadow-md`;

@@ -14,50 +14,47 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: '#3b82f6', // 蓝色
-                        accent: '#10b981',  // 绿色
-                    },
-                    fontFamily: {
-                        // 确保中文字体优先，以提高可读性
-                        sans: ['Inter', 'Microsoft YaHei', 'SimHei', 'sans-serif'],
-                    },
-                },
-            },
+                        primary: '#1070ff', // 小强的主题色：蓝色
+                        accent: '#10b981',  // 强调色：绿色
+                    }
+                }
+            }
         }
     </script>
     <style>
-        /* 引入Inter字体 */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-
-        /* =================================================== */
-        /* 标题响应式样式 (中文大，英文小) */
-        /* =================================================== */
-        /* 手机默认样式 */
-        .bilingual-header .chinese-text {
-            font-size: 1.5rem; /* 增大中文，text-2xl */
-            font-weight: 800; /* 加粗中文 */
-            line-height: 1.2;
-            color: #3b82f6; /* 使用 primary 颜色，使其突出 */
+        /* 加载点的动画 */
+        .loading-dot {
+            width: 4px;
+            height: 4px;
+            background-color: #9ca3af;
+            border-radius: 50%;
+            display: inline-block;
+            animation: bounce 1.4s infinite ease-in-out both;
         }
-        .bilingual-header .english-text {
-            font-size: 1rem; /* 减小英文，text-base */
-            font-weight: 500; /* 减轻英文的粗细 */
-            color: #6b7280; /* 使用灰色，使其次要 */
-            margin-top: 4px;
+        .loading-dot:nth-child(2) {
+            animation-delay: -0.32s;
+        }
+        .loading-dot:nth-child(3) {
+            animation-delay: -0.16s;
+        }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
         }
 
-        /* 电脑/平板适配 (md: 768px 以上) */
-        @media (min-width: 768px) {
-            .bilingual-header .chinese-text {
-                font-size: 2rem; /* md:text-3xl，PC端进一步放大中文 */
-            }
-            .bilingual-header .english-text {
-                font-size: 1.25rem; /* md:text-xl，PC端进一步减小英文 */
-            }
+        /* 聊天气泡样式 */
+        .user-message {
+            background-color: #e5e7eb; /* 浅灰色 */
+            color: #1f2937;
+            border-bottom-right-radius: 4px;
         }
-        /* =================================================== */
+        .model-message {
+            background-color: #f3f4f6; /* 更浅的灰色 */
+            color: #1f2937;
+            border-bottom-left-radius: 4px;
+        }
 
-        /* 自定义滚动条样式 */
+        /* 滚动条美化 */
         .chat-container::-webkit-scrollbar {
             width: 8px;
         }
@@ -65,46 +62,49 @@
             background-color: #d1d5db;
             border-radius: 4px;
         }
-        /* 聊天气泡样式 */
-        .user-message {
-            background-color: #dbeafe; /* 浅蓝色 */
+        .chat-container::-webkit-scrollbar-track {
+            background: #f9fafb;
         }
-        .model-message {
-            background-color: #f3f4f6; /* 浅灰色 */
-        }
-        /* 动画效果 */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .chat-message {
-            animation: fadeIn 0.3s ease-out;
-        }
-        /* 确保图片在聊天气泡内能自适应 */
-        .model-message img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-            margin-top: 10px;
-        }
-        /* 修复：添加加载动画样式 */
-        .loading-dot {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background-color: #9ca3af;
-            border-radius: 50%;
-            margin: 0 2px;
-            animation: loading 1.4s infinite ease-in-out both;
-        }
-        .loading-dot:nth-child(1) { animation-delay: -0.32s; }
-        .loading-dot:nth-child(2) { animation-delay: -0.16s; }
-        .loading-dot:nth-child(3) { animation-delay: 0s; }
 
-        @keyframes loading {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1.0); }
+        /* Markdown 样式 */
+        .chat-message h1, .chat-message h2, .chat-message h3 {
+            font-weight: bold;
+            margin-top: 0.5em;
+            margin-bottom: 0.5em;
+            color: #1070ff; /* Primary color */
         }
+        .chat-message p {
+            margin-bottom: 0.5em;
+        }
+        .chat-message a {
+            color: #10b981; /* Accent color */
+            text-decoration: underline;
+        }
+        .chat-message ul, .chat-message ol {
+            padding-left: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        .chat-message code {
+            background-color: #e5e7eb;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .chat-message pre {
+            background-color: #374151;
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 0.5em 0;
+        }
+        .chat-message img {
+             max-width: 100%;
+             height: auto;
+             border-radius: 8px;
+             margin-top: 10px;
+        }
+        
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen font-sans antialiased">
@@ -134,7 +134,7 @@
             </div>
         
         <div id="articleModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
-            <div class="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-md transform scale-95 transition-transform duration-300">
+            <div class="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-md transform scale-95 transition-transform duration-300" onclick="event.stopPropagation()">
                 <h2 id="modalArticleTitle" class="text-xl font-bold text-primary mb-3"></h2>
                 <div id="modalArticleSummary" class="text-gray-700 max-h-60 overflow-y-auto mb-4"></div>
                 <div class="flex justify-between items-center">
@@ -149,7 +149,7 @@
         </div>
 
         <div class="bg-white p-4 rounded-xl shadow-lg flex items-center">
-            <input type="text" id="userInput" class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition duration-150 mr-3">
+            <input type="text" id="userInput" class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition duration-150 mr-3" placeholder="输入读者的问题，与小强互动...">
             <button id="sendButton" class="p-3 bg-accent text-white rounded-lg hover:bg-green-600 transition duration-150 shadow-md flex items-center justify-center disabled:opacity-50" disabled>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
                     <path d="M3.478 2.405a.75.75 0 0 0-.926.94l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.547 60.547 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.547 60.547 0 0 0 3.478 2.405Z" />
@@ -158,16 +158,19 @@
         </div>
     </div>
 
-    <script src="articles.js"></script>
+    <script src="articles.js"></script> 
 
     <script>
-        // 【优化点：新增功能】 设置历史记录的最大长度 (N 轮对话 = 2 * N 条消息)
+        // 设置历史记录的最大长度 (N 轮对话 = 2 * N 条消息)
         const MAX_HISTORY_MESSAGES = 10; 
         
         // --- 1. State Variables ---
         // ⚠️ 请在这里替换为您真实的 API Key
-        const apiKey = "AIzaSyDEVjh8JYyLAhM58XvONoyI_Dwvs8hS7Vo"; 
-        const modelName = 'gemini-2.5-flash-preview-09-2025';
+        const apiKey = "AIzaSyBQzyOL82wLI-vVtGZ1n5PX45HB5S2hyAo"; 
+        // 建议使用最新的稳定模型，这里保留了用户提供的名称
+        // 稳定版，推荐使用
+        const modelName = 'gemini-2.5-flash'; 
+
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
         
         let chatHistory = []; 
@@ -181,7 +184,6 @@
         const toggleLinkModeButton = document.getElementById('toggleLinkMode');
         const linkModeDisplay = document.getElementById('linkModeDisplay');
         const headerTitleContainer = document.getElementById('headerTitleContainer'); 
-        // 【优化点：新增功能】 注册 Modal DOM
         const articleModal = document.getElementById('articleModal');
         const modalArticleTitle = document.getElementById('modalArticleTitle');
         const modalArticleSummary = document.getElementById('modalArticleSummary');
@@ -189,7 +191,6 @@
 
 
         // --- 3. 业务详情数据 (硬编码，用于关键词触发) ---
-        // (保持不变，已在您的上一轮修复中移除了重复的二维码 Markdown)
         const businessDetails = {
             zh: {
                 // 通用香水业务介绍 (用于触发“香水”等通用词时)
@@ -304,7 +305,6 @@ My master, Teacher Mehdi, will get back to you as soon as possible.
          */
         function getInitialMessage(lang) {
             if (lang === 'zh') {
-                // 【优化点：系统提示词】 优化欢迎语，更符合“小小强”的亲切感
                 const zhMessage = `你好啊！我是你的公众号小助理**小小强**。我的主人**小强老师**是一位高学历、高知识结构、有广东、北京等多地丰富经历生活、热爱公益，曾被**中央电视台《人物》专栏**报道过的有志人士。他通晓计算机、信息技术、企业管理（10年以上）、人寿保险（12年以上）、心理学（研究血型与性格相关20年），10多年以来撰写了400多篇文章。**2023年以后带娃来菲律宾留学并旅居在此**，对这里的生活、教育、旅游都非常熟悉！
 
 **我用了一年时间摸清了中国孩子在菲律宾读中学和考大学的路（包括华侨生联考），还开了香水店和包车服务。**
@@ -312,7 +312,6 @@ My master, Teacher Mehdi, will get back to you as soon as possible.
 如果您有关于**保险、心理、菲律宾旅行、留学、马尼拉包车游、买香水**等任何问题，尽管问我！我很乐意分享小强老师的精彩经历和经验。`;
                 return zhMessage;
             } else {
-                // 【优化点：系统提示词】 优化欢迎语，更符合“Mehdi”的角色
                 const enMessage = `Hello! I am your official account assistant, **Mehdi**. My master, **Teacher Mehdi**, is a highly educated, public-spirited individual who has lived in places like Guangdong and Beijing, and was even featured in **China Central Television (CCTV)'s "People" column**. He is proficient in IT, Business Management (10+ years), Life Insurance (12+ years), and Psychology. **Since 2023, he has been residing in the Philippines,** and is now very familiar with the local study, travel, and lifestyle scene!
 
 **I spent a year getting to know the path for Chinese children to study middle school and university here (including the Huqiao Entrance Exam). Plus, we run a perfume shop and a charter van service!**
@@ -323,20 +322,18 @@ If you have questions about **insurance, psychology, travel, study abroad in the
         }
 
         /**
-         * 更新链接模式的显示和按钮文本 (已修复输入框占位符)
+         * 更新链接模式的显示和按钮文本
          */
         function updateLinkModeUI() {
             if (linkMode === 'zh') {
                 linkModeDisplay.textContent = '链接模式：中文 (默认) | Link Mode: Chinese (Default)';
                 toggleLinkModeButton.textContent = '切换到英文翻译 | Switch to English';
-                // 修正点：中文占位符
                 userInput.placeholder = '输入读者的问题，与小强互动...';
                 toggleLinkModeButton.classList.remove('bg-green-600');
                 toggleLinkModeButton.classList.add('bg-primary');
             } else {
                 linkModeDisplay.textContent = '链接模式：英文翻译 | Link Mode: English Translation';
                 toggleLinkModeButton.textContent = '切换到中文 (默认) | Switch to Chinese';
-                // 修正点：英文占位符
                 userInput.placeholder = 'Ask a question to Xiaoqiang, the assistant...'; 
                 toggleLinkModeButton.classList.remove('bg-primary');
                 toggleLinkModeButton.classList.add('bg-green-600');
@@ -377,16 +374,17 @@ If you have questions about **insurance, psychology, travel, study abroad in the
             sendButton.disabled = false;
         }
 
-        // 【优化点：新增功能】 新增文章预览Modal的关闭函数
+        // 新增文章预览Modal的关闭函数
         function closeArticleModal() {
             articleModal.classList.remove('opacity-100', 'pointer-events-auto');
             articleModal.classList.add('opacity-0', 'pointer-events-none');
         }
 
-        // 【优化点：新增功能】 新增文章预览Modal的显示函数
+        // 新增文章预览Modal的显示函数
         function showArticleModal(title, summary, url) {
             modalArticleTitle.textContent = title;
-            modalArticleSummary.innerHTML = marked.parse(summary); // 使用 marked 解析 summary
+            // 使用 marked.parse 解析 summary
+            modalArticleSummary.innerHTML = marked.parse(summary); 
             modalArticleLink.href = url;
             
             articleModal.classList.add('opacity-100', 'pointer-events-auto');
@@ -400,29 +398,88 @@ If you have questions about **insurance, psychology, travel, study abroad in the
             };
         }
 
-        // --- 5. 其他辅助函数 (略有修改) ---
-        function showInitError() { /* ... 保持不变 ... */ }
-        function getProcessedUrl(originalUrl) { /* ... 保持不变 ... */
+        // --- 5. 其他辅助函数 ---
+        
+        function showInitError() { 
+            chatContainer.innerHTML = '<div class="text-center p-6 text-red-600 font-semibold border-2 border-red-300 rounded-lg">致命错误：无法加载文章数据 (articles.js)。请检查文件路径或网络连接。</div>';
+            sendButton.disabled = true;
+            userInput.disabled = true;
+        }
+        
+        function getProcessedUrl(originalUrl) { 
             if (linkMode === 'en') {
                 const encodedUrl = encodeURIComponent(originalUrl);
                 return `https://translate.google.com/translate?sl=zh-CN&tl=en&u=${encodedUrl}`;
             }
             return originalUrl;
         }
-        function showStatusModal(message) { /* ... 保持不变 ... */ }
-        function copyArticleLink(url, id) { /* ... 保持不变 ... */ }
-        function showConfirmModal(message, onConfirmCallback) { /* ... 保持不变 ... */ }
 
+        function showStatusModal(message) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-800 text-white p-3 rounded-lg shadow-xl z-50 transition duration-300 opacity-0';
+            modal.textContent = message;
+            document.body.appendChild(modal);
+            setTimeout(() => {
+                modal.classList.add('opacity-100');
+            }, 10);
+            setTimeout(() => {
+                modal.classList.remove('opacity-100');
+                setTimeout(() => modal.remove(), 300);
+            }, 1500);
+        }
+
+        function copyArticleLink(url, id) {
+             const message = linkMode === 'en' ? `Link for Article ID ${id} copied!` : `文章ID ${id}的链接已复制！`;
+             navigator.clipboard.writeText(url).then(() => {
+                showStatusModal(message);
+            }).catch(err => {
+                console.error('Could not copy text: ', err);
+                alert(linkMode === 'en' ? 'Copy failed!' : '复制失败！');
+            });
+        }
+        
+        function showConfirmModal(message, onConfirmCallback) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300 opacity-100';
+            
+            const content = document.createElement('div');
+            content.className = 'bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-sm';
+            
+            const p = document.createElement('p');
+            p.className = 'text-gray-700 mb-6';
+            p.textContent = message;
+            content.appendChild(p);
+
+            const buttonContainer = document.createElement('div');
+            buttonContainer.className = 'flex justify-end space-x-3';
+
+            const cancelButton = document.createElement('button');
+            cancelButton.className = 'py-2 px-4 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition duration-150';
+            cancelButton.textContent = linkMode === 'en' ? 'Cancel' : '取消';
+            cancelButton.onclick = () => modal.remove();
+            buttonContainer.appendChild(cancelButton);
+
+            const confirmButton = document.createElement('button');
+            confirmButton.className = 'py-2 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-150';
+            confirmButton.textContent = linkMode === 'en' ? 'Reset' : '重置';
+            confirmButton.onclick = () => {
+                onConfirmCallback();
+                modal.remove();
+            };
+            buttonContainer.appendChild(confirmButton);
+
+            content.appendChild(buttonContainer);
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+        }
 
         /**
-         * 在聊天界面显示消息 (已修改，支持快速预览)
+         * 在聊天界面显示消息
          */
         function displayMessage(text, role, recommendation = null) {
             const messageDiv = document.createElement('div');
-            // 【优化点：用户体验】 使用 requestAnimationFrame 确保平滑滚动
             messageDiv.className = `chat-message mb-4 p-3 rounded-lg max-w-[85%] shadow-md ${role === 'user' ? 'user-message ml-auto' : 'model-message mr-auto'}`;
             
-            // 使用 Markdown 解析器进行基本格式化
             const formattedText = marked.parse(text); 
             messageDiv.innerHTML = formattedText;
             
@@ -433,7 +490,6 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                 const processedUrl = getProcessedUrl(recommendation.url);
                 const linkText = linkMode === 'en' ? '（英文翻译）' : '（中文）';
 
-                // 【优化点：新增功能】 增加“快速预览”按钮
                 recDiv.innerHTML = `
                     <p class="font-bold text-gray-700 mb-1">🎯 小强推荐文章 ${linkText}:</p>
                     <a href="${processedUrl}" target="_blank" class="block text-primary hover:text-blue-600 font-semibold truncate hover:underline mb-2">
@@ -441,7 +497,7 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                     </a>
                     <div class="flex items-center space-x-2">
                         <span class="text-sm font-mono bg-gray-200 text-gray-700 px-2 py-1 rounded">ID: ${recommendation.id}</span>
-                        <button onclick="showArticleModal('${recommendation.title.replace(/'/g, "\\'")}', '${recommendation.summary.replace(/'/g, "\\'")}', '${processedUrl}')" class="px-2 py-1 text-xs rounded-full bg-primary text-white hover:bg-blue-600 transition duration-150">
+                        <button onclick="showArticleModal('${recommendation.title.replace(/'/g, "\\'")}', \`${recommendation.summary.replace(/`/g, "\\`")}\`, '${processedUrl}')" class="px-2 py-1 text-xs rounded-full bg-primary text-white hover:bg-blue-600 transition duration-150">
                             快速预览
                         </button>
                         <button onclick="copyArticleLink('${processedUrl}', '${recommendation.id}')" class="px-2 py-1 text-xs rounded-full bg-accent text-white hover:bg-green-600 transition duration-150">
@@ -454,7 +510,6 @@ If you have questions about **insurance, psychology, travel, study abroad in the
 
             chatContainer.appendChild(messageDiv);
             
-            // 【优化点：用户体验】 使用 requestAnimationFrame 确保平滑滚动
             requestAnimationFrame(() => {
                 chatContainer.scrollTop = chatContainer.scrollHeight;
             });
@@ -462,7 +517,7 @@ If you have questions about **insurance, psychology, travel, study abroad in the
 
 
         /**
-         * 确定用户输入的语言 (保持不变)
+         * 确定用户输入的语言 
          */
         function detectInputLanguage(text) {
             const chineseChars = text.match(/[\u4e00-\u9fa5]/g)?.length || 0;
@@ -476,68 +531,80 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                 return 'en';
             }
             
-            return 'zh';
+            return 'zh'; 
         }
         
         /**
-         * 业务关键词检测函数 (保持不变)
+         * 业务关键词检测函数
          */
         function checkBusinessKeyword(text) {
-             /* ... 保持不变 ... */
             const lowerText = text.toLowerCase();
             
-            // --- 购买/价格/库存 关键词列表 (优先级最高) ---
-            const buyPriceKeywords = ['价格', '多少钱', '怎么买', '下单', '库存', '有没有货', 'price', 'how much', 'buy', 'order', 'stock', 'purchase', 'available'];
+            // --- 购买/价格/库存 关键词列表 (最高优先级：直接导向真人联系) ---
+            const buyPriceKeywords = ['价格', '多少钱', '怎么买', '下单', '库存', '有没有货', 'price', 'how much', 'buy', 'order', 'stock', 'purchase', 'available', '现货'];
             
-            // 1. 联系/微信关键词 (保持高优先级)
+            // 1. 联系/微信关键词 
             if (lowerText.includes('联系') || lowerText.includes('contact') || lowerText.includes('微信') || lowerText.includes('wechat') || lowerText.includes('reach out')) {
                 return 'contact';
             }
 
-            // 2. 购买/价格关键词 (赋予高优先级)
+            // 2. 购买/价格关键词 
             const isBuyPriceQuery = buyPriceKeywords.some(keyword => lowerText.includes(keyword));
             if (isBuyPriceQuery) {
                 return 'buy_price'; // 返回引导联系真人的硬编码类型
             }
             
-            // 3. 香水关键词 (现在仅用于通用业务描述)
+            // 3. 留学咨询关键词 (通用问题走 AI，具体流程走硬编码)
+            const isStudyKeyword = (lowerText.includes('留学') || lowerText.includes('咨询') || lowerText.includes('study') || lowerText.includes('abroad') || lowerText.includes('consult') || lowerText.includes('学校') || lowerText.includes('中学') || lowerText.includes('大学') || lowerText.includes('school'));
+            
+            if (isStudyKeyword) {
+                // 排除性关键词：询问具体流程、费用、价格时，直接转为硬编码的“付费咨询”推广
+                const specificStudyKeywords = ['流程', '费用', '多少钱', '价格', '怎么开始', '合作', '收费', 'process', 'fee', 'price', 'cost', 'paid'];
+                
+                const isSpecificStudyQuery = specificStudyKeywords.some(keyword => lowerText.includes(keyword));
+
+                // 如果是询问具体付费流程或价格，则返回硬编码的 'study' 业务推广
+                if (isSpecificStudyQuery) {
+                    return 'study';
+                }
+                
+                // 否则（如“留学怎么样”、“优势”），返回 null，走 AI 智能回复和文章推荐
+                return null;
+            }
+            
+            // 4. 香水关键词 (所有品牌/推荐咨询走 AI，仅业务介绍走硬编码)
             if (lowerText.includes('香水') || lowerText.includes('perfume') || lowerText.includes('scent') || lowerText.includes('shop') || lowerText.includes('护肤品') || lowerText.includes('skincare')) {
                 
-                // 排除性关键词：用于区分通用介绍和智能回复
-                // 包含 "Dior" 或 "哪种香水" 等具体名词时，应该走 AI 智能回复 (返回 null)
-                const specificKeywords = ['哪种', '什么牌子', '牌子', '品牌', '型号', 'type', 'brand', 'model', 'dior', 'chanel', 'gucci', 'versace', 'hermes', 'bvlgari']; 
+                // 判断是否为**极其笼统**的“业务介绍”查询
+                const genericQueryKeywords = ['业务', '介绍', '你们卖什么', '你们店里有', 'what do you sell', 'what products'];
                 
-                const isSpecificBrandQuery = specificKeywords.some(keyword => lowerText.includes(keyword));
+                const isGenericBusinessQuery = genericQueryKeywords.some(keyword => lowerText.includes(keyword));
 
-                // 如果包含香水通用词，但不包含具体的品牌/型号，也不包含购买/价格词，则返回通用介绍。
-                if (!isSpecificBrandQuery) {
+                // 仅当用户明确询问“业务/介绍”时，返回硬编码的业务推广
+                if (isGenericBusinessQuery) {
                      return 'perfume';
                 }
                 
-                // 如果包含香水通用词，但同时包含具体的品牌/型号，则返回 null，走 AI 智能回复。
+                // 否则（问品牌、推荐、怎么样），返回 null，交给 AI 智能回答
+                return null; 
             }
             
-            // 4. 留学咨询关键词
-            if ((lowerText.includes('留学') || lowerText.includes('咨询') || lowerText.includes('study') || lowerText.includes('abroad') || lowerText.includes('consult') || lowerText.includes('学校') || lowerText.includes('中学') || lowerText.includes('大学') || lowerText.includes('school'))) {
-                return 'study';
-            }
-            
-            // 5. 包车/租车关键词
+            // 5. 包车/租车关键词 
             if ((lowerText.includes('包车') || lowerText.includes('租车') || lowerText.includes('charter') || lowerText.includes('van') || lowerText.includes('car service') || lowerText.includes('丰田') || lowerText.includes('toyota') || lowerText.includes('游') || lowerText.includes('玩'))) {
                 return 'charter';
             }
             
-            return null; // 没有匹配到业务关键词，或者是一个需要智能回复的具体业务询问
+            return null; // 没有匹配到业务关键词，进入 AI 智能回复
         }
 
-        // --- 优化后的 sendMessage 函数 ---
+        // --- 优化后的 sendMessage 函数 (最终修复版本) ---
         async function sendMessage() {
             const text = userInput.value.trim();
             if (!text) return;
 
             // 1. UI更新 (禁用输入、显示用户消息)
             userInput.value = '';
-            userInput.disabled = true; // 禁用输入框
+            userInput.disabled = true; 
             sendButton.disabled = true;
             displayMessage(text, 'user');
 
@@ -547,12 +614,12 @@ If you have questions about **insurance, psychology, travel, study abroad in the
 
             // 3. 如果检测到业务关键词，直接返回硬编码的业务详情
             if (businessKey) {
-                // 使用检测到的语言返回硬编码的业务信息
                 const businessMessage = businessDetails[lang][businessKey]; 
                 
-                // ⚠️ 如果触发了 buy_price 或 contact，还需要手动添加二维码图片
+                // 如果触发了 buy_price 或 contact，需要手动添加二维码图片
                 if (businessKey === 'contact' || businessKey === 'buy_price') {
-                    const messageWithImage = businessMessage + `<p class="mt-4"><img src="wechat_qr.jpg" alt="WeChat QR Code" class="max-w-xs mx-auto"></p>`;
+                    // ⚠️ 假设 wechat_qr.jpg 存在于当前目录
+                    const messageWithImage = businessMessage + `<p class="mt-4 text-center"><img src="wechat_qr.jpg" alt="WeChat QR Code" class="max-w-[150px] mx-auto"></p>`;
                     displayMessage(messageWithImage, 'model');
                 } else {
                      displayMessage(businessMessage, 'model');
@@ -563,30 +630,34 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                 userInput.disabled = false;
                 sendButton.disabled = false;
                 userInput.focus();
-                return; // 结束函数，不调用 API
+                
+                // 确保 chatHistory 不超出限制
+                if (chatHistory.length > MAX_HISTORY_MESSAGES) {
+                    chatHistory = chatHistory.slice(-MAX_HISTORY_MESSAGES);
+                }
+                return; 
             }
             
             // 4. 实时智能回复 (调用 Gemini API)
             
-            // A. 显示加载指示器 (改为直接添加占位符，不移除)
+            // A. 显示加载指示器 (原地更新的占位符)
             const loadingIndicator = document.createElement('div');
             loadingIndicator.className = 'chat-message mb-4 p-3 model-message mr-auto rounded-lg max-w-[85%] shadow-md';
-            loadingIndicator.id = 'loadingIndicator'; // 增加ID以便后续更新
+            loadingIndicator.id = 'loadingIndicator'; 
             loadingIndicator.innerHTML = '<div class="flex items-center space-x-1"><span class="text-gray-500">思考中</span><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></div>';
             chatContainer.appendChild(loadingIndicator);
-            requestAnimationFrame(() => { // 再次确保平滑滚动
+            requestAnimationFrame(() => { 
                 chatContainer.scrollTop = chatContainer.scrollHeight;
             });
 
             // B. 准备 API 调用
-            // 【优化点：新增功能】 限制 chatHistory 长度
-            // 确保只发送最近的 N 条消息，同时保留最新的用户消息
-            let limitedHistory = [...chatHistory].slice(-MAX_HISTORY_MESSAGES);
-            limitedHistory.push({ role: "user", parts: [{ text: text }] });
+            let limitedHistory = [...chatHistory].slice(-(MAX_HISTORY_MESSAGES - 1)); 
+            
+            // 修正点 1: 确保用户消息 Content 内部的 parts 对象中没有 role 字段
+            limitedHistory.push({ role: "user", parts: [{ text: text }] }); 
 
             let articleList = '';
             if (typeof mockArticles !== 'undefined') {
-                // 确保 mockArticles 可用
                 articleList = mockArticles.map(a => 
                     `ID: ${a.id}, 标题: ${a.title}, 侧重点/摘要: ${a.summary}`
                 ).join('\n');
@@ -594,7 +665,7 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                  articleList = '文章列表不可用，请勿推荐。';
             }
 
-            // 【优化点：系统提示词】 增强 System Prompt
+            // 增强 System Prompt
             const systemPrompt = `
                 你是一个幽默、亲切、爱互动的公众号助理。请注意你的双语名称设定：
                 - **中文语境下，你的名字是“小小强”。**
@@ -617,19 +688,24 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                 ${articleList}
             `;
             
-            // PAYLOAD 结构
+            // 1. 创建 System Content 对象 
+            const systemContent = {
+                role: "system", // 明确指定角色为 'system'
+                parts: [{ text: systemPrompt }]
+            };
+
+            // 2. 将 System Content 放在历史记录的最前面
+            let fullContents = [systemContent, ...limitedHistory];
+
+            // PAYLOAD 结构 
             const payload = {
-                // 【优化点：新增功能】 使用 limitedHistory
-                contents: limitedHistory, 
-                config: {
-                    systemInstruction: systemPrompt
-                }
+                contents: fullContents
             };
 
             let modelReplyText = lang === 'en' ? "Sorry, the system is experiencing a temporary issue." : "抱歉，系统暂时出了点小问题。";
             let recommendedArticle = null;
             let fullModelResponse = null;
-            let apiError = false; // 新增错误标记
+            let apiError = false; 
 
             try {
                 const response = await fetch(apiUrl, {
@@ -645,15 +721,15 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                     modelReplyText = lang === 'en' 
                         ? `API Request Failed (Status ${response.status}). Error: ${errorMessage}`
                         : `API请求失败 (状态码 ${response.status})。错误信息: ${errorMessage}。请尝试重置对话或稍后再试。`;
+                    console.error('API Error:', errorJson); // 打印详细错误到控制台
                 } else {
                     const result = await response.json();
                     
-                    // 确保有返回结果
                     fullModelResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
                     if (!fullModelResponse) {
                         modelReplyText = lang === 'en' 
-                            ? "I'm sorry, the model did not provide a coherent response." 
-                            : "抱歉，模型未返回有效的回复。";
+                            ? "I'm sorry, the model did not provide a coherent response. The response might have been blocked by safety filters." 
+                            : "抱歉，模型未返回有效的回复。回复可能被安全过滤器阻止。";
                     } else {
                         // 提取推荐ID
                         const match = fullModelResponse.match(/\[RECOMMEND_ID: (A\d{3}|NONE)\]/i);
@@ -662,20 +738,23 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                         // 清理回复文本，移除推荐标记
                         modelReplyText = fullModelResponse.replace(/\[RECOMMEND_ID: (A\d{3}|NONE)\]/i, '').trim();
 
-                        if (recId !== 'NONE') {
-                            // 查找文章
-                            if (typeof mockArticles !== 'undefined') {
-                                recommendedArticle = mockArticles.find(a => a.id === recId);
-                            }
-                            
-                            // 如果推荐了不存在的文章，可以加上提示
+                        if (recId !== 'NONE' && typeof mockArticles !== 'undefined') {
+                            recommendedArticle = mockArticles.find(a => a.id === recId);
                             if (!recommendedArticle) {
                                 modelReplyText += (lang === 'en' ? '\n\n(System Note: Recommended article ID is invalid.)' : '\n\n(系统提示: 推荐的文章ID无效。)');
                             }
                         }
-                        // 【优化点：新增功能】 模型回复成功后才加入 chatHistory
-                        chatHistory.push({ role: "user", parts: [{ text: text }] });
-                        chatHistory.push({ role: "model", parts: [{ text: fullModelResponse }] });
+                        
+                        // 记录历史
+                        // 注意：这里只记录用户和模型的实际对话，不记录 system prompt
+                        chatHistory.push(limitedHistory[limitedHistory.length - 1]); 
+                        
+                        // 修正点 2: 确保模型消息 Content 内部的 parts 对象中没有 role 字段
+                        chatHistory.push({ role: "model", parts: [{ text: fullModelResponse }] }); 
+                        
+                        if (chatHistory.length > MAX_HISTORY_MESSAGES) {
+                            chatHistory = chatHistory.slice(-MAX_HISTORY_MESSAGES);
+                        }
                     }
                 }
 
@@ -684,24 +763,22 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                 console.error("Critical error in sendMessage:", error);
                 modelReplyText = lang === 'en' 
                     ? `A critical network error occurred: ${error.message}`
-                    : `发生致命网络错误：${error.message}。请检查您的网络连接。`;
-                
-                // 【优化点：新增功能】 网络错误时不记录历史
-                // chatHistory.pop(); // 原始代码中在 catch 中 pop user，这里由于 limitedHistory 是基于 chatHistory 克隆的，逻辑稍有不同，我们直接在成功时才 push 即可
+                    : `发生致命网络错误：${error.message}。请检查您的网络连接或 API Key 是否正确。`;
             }
             
             // C. 移除加载提示并显示最终回复
-            // 【优化点：用户体验】 直接更新加载气泡的内容
             if (loadingIndicator) {
-                loadingIndicator.id = ''; // 移除ID
-                loadingIndicator.innerHTML = ''; // 清空加载动画
+                // 避免在 chatContainer 已经滚动到底部时，将加载指示器单独移除。改为原地更新。
+                loadingIndicator.id = ''; 
+                loadingIndicator.innerHTML = ''; 
                 loadingIndicator.className = `chat-message mb-4 p-3 model-message mr-auto rounded-lg max-w-[85%] shadow-md`;
                 
-                // 重新渲染内容（使用 displayMessage 的核心逻辑）
+                // 重新渲染内容
                 const formattedText = marked.parse(modelReplyText); 
                 loadingIndicator.innerHTML = formattedText;
                 
-                if (recommendedArticle && !apiError) { // 只有成功且有推荐文章时才显示推荐卡片
+                // 显示推荐卡片
+                if (recommendedArticle && !apiError) { 
                     const recDiv = document.createElement('div');
                     recDiv.className = 'mt-3 pt-3 border-t border-gray-300 recommendation-card';
                     
@@ -715,7 +792,7 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                         </a>
                         <div class="flex items-center space-x-2">
                             <span class="text-sm font-mono bg-gray-200 text-gray-700 px-2 py-1 rounded">ID: ${recommendedArticle.id}</span>
-                            <button onclick="showArticleModal('${recommendedArticle.title.replace(/'/g, "\\'")}', '${recommendedArticle.summary.replace(/'/g, "\\'")}', '${processedUrl}')" class="px-2 py-1 text-xs rounded-full bg-primary text-white hover:bg-blue-600 transition duration-150">
+                            <button onclick="showArticleModal('${recommendedArticle.title.replace(/'/g, "\\'")}', \`${recommendedArticle.summary.replace(/`/g, "\\`")}\`, '${processedUrl}')" class="px-2 py-1 text-xs rounded-full bg-primary text-white hover:bg-blue-600 transition duration-150">
                                 快速预览
                             </button>
                             <button onclick="copyArticleLink('${processedUrl}', '${recommendedArticle.id}')" class="px-2 py-1 text-xs rounded-full bg-accent text-white hover:bg-green-600 transition duration-150">
@@ -731,13 +808,19 @@ If you have questions about **insurance, psychology, travel, study abroad in the
             userInput.disabled = false;
             sendButton.disabled = false;
             userInput.focus();
-            requestAnimationFrame(() => { // 确保在恢复输入时，再次滚动到底部
+            requestAnimationFrame(() => { 
                 chatContainer.scrollTop = chatContainer.scrollHeight;
             });
         }
 
 
         // --- 6. Event Listeners & Initialization ---
+        
+        // 绑定到全局 scope
+        window.closeArticleModal = closeArticleModal;
+        window.showArticleModal = showArticleModal;
+        window.copyArticleLink = copyArticleLink;
+        window.initializeApp = initializeApp; 
 
         sendButton.addEventListener('click', sendMessage);
         userInput.addEventListener('keypress', (e) => {
@@ -759,7 +842,7 @@ If you have questions about **insurance, psychology, travel, study abroad in the
         document.addEventListener('DOMContentLoaded', () => {
             // 延迟执行以确保所有的 DOM 和外部脚本都已加载
             setTimeout(() => {
-                if (typeof mockArticles !== 'undefined') {
+                if (typeof mockArticles !== 'undefined' && typeof marked !== 'undefined') {
                     initializeApp();
                 } else {
                     showInitError(); 

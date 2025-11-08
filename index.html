@@ -196,14 +196,16 @@
         // 设置历史记录的最大长度 (N 轮对话 = 2 * N 条消息)
         const MAX_HISTORY_MESSAGES = 10; 
         
-        // --- 1. State Variables ---
-        // ⚠️ 请在这里替换为您真实的 API Key
-        const apiKey = "AIzaSyBQzyOL82wLI-vVtGZ1n5PX45HB5S2hyAo"; 
-        // 建议使用最新的稳定模型，这里保留了用户提供的名称
+        // --- 1. State Variables & Gemini Configuration ---
+        
+        // 🚨 密钥已移除！API Key 现在安全地存储在 Cloudflare Worker 的环境变量中。
+        // const apiKey = "AIzaSyBQzyOL82wLI-vVtGZ1n5PX45HB5S2hyAo"; 
+        
+        // 使用最新的稳定模型
         const modelName = 'gemini-2.5-flash'; 
 
-        // 使用 REST API Endpoint
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+        // 🚀 修复：使用 Cloudflare Worker 代理链接 (不包含 API Key)
+        const apiUrl = 'https://gemini-proxy-xiaoqiang.superman0226.workers.dev/'; 
         
         let chatHistory = []; 
         let linkMode = localStorage.getItem('linkMode') || 'zh';
@@ -429,8 +431,8 @@ If you have questions about **insurance, psychology, travel, study abroad in the
             chatContainer.innerHTML = '';
             chatHistory = [];
             
-            // 首次启动时，显示助理的欢迎语 (默认为中文)
-            displayMessage(getInitialMessage('zh'), 'model');
+            // 🚀 修复：首次启动时，根据当前的 linkMode 变量显示对应语言的欢迎语
+            displayMessage(getInitialMessage(linkMode), 'model');
             
             // 动态更新所有 UI 提示
             updateLinkModeUI();
@@ -695,10 +697,11 @@ If you have questions about **insurance, psychology, travel, study abroad in the
             // 2. 业务关键词检测
             const lang = detectInputLanguage(text);
             const businessKey = checkBusinessKeyword(text);
-
+            
             // 3. 如果检测到业务关键词，返回硬编码的业务详情（特殊处理 study, buy_price, contact, charter）
             if (businessKey && businessKey !== 'perfume_smart' && businessKey !== 'study_smart') {
-                const businessMessage = businessDetails[lang][businessKey]; 
+                const businessMessageRaw = businessDetails[lang][businessKey]; // 原始文本，用于历史记录
+                let businessMessage = businessMessageRaw; // 实际显示文本
                 
                 // 定义一个变量来存储要强制推荐的文章对象
                 let forcedRecommendation = null; 
@@ -726,17 +729,16 @@ If you have questions about **insurance, psychology, travel, study abroad in the
                 // --- 特殊处理：二维码图片 ---
                 if (businessKey === 'contact' || businessKey === 'buy_price') {
                     // ⚠️ 假设 wechat_qr.jpg 存在于当前目录
-                    const messageWithImage = businessMessage + `<p class="mt-4 text-center"><img src="wechat_qr.jpg" alt="WeChat QR Code" class="max-w-[150px] mx-auto"></p>`;
-                    // 最终硬编码回复，带上或不带上强制推荐
-                    displayMessage(messageWithImage, 'model', forcedRecommendation); 
-
-                } else {
-                    // 最终硬编码回复，带上或不带上强制推荐
-                     displayMessage(businessMessage, 'model', forcedRecommendation);
-                }
+                    businessMessage += `<p class="mt-4 text-center"><img src="wechat_qr.jpg" alt="WeChat QR Code" class="max-w-[150px] mx-auto"></p>`;
+                    // businessMessageRaw 保持不变，不带图片，以避免污染历史记录
+                } 
                 
-                // 记录历史并恢复按钮
+                // 最终硬编码回复，带上或不带上强制推荐
+                displayMessage(businessMessage, 'model', forcedRecommendation);
+                
+                // 🚀 修复：记录用户和硬编码回复到历史
                 chatHistory.push({ role: "user", parts: [{ text: text }] });
+                chatHistory.push({ role: "model", parts: [{ text: businessMessageRaw }] }); // 记录原始文本
                 
                 if (chatHistory.length > MAX_HISTORY_MESSAGES) {
                     chatHistory = chatHistory.slice(-MAX_HISTORY_MESSAGES);
@@ -883,7 +885,7 @@ My master, Teacher Mehdi, is an experienced co-resident parent in the Philippine
             let apiError = false; 
 
             try {
-                const response = await fetch(apiUrl, {
+                const response = await fetch(apiUrl, { // ⚠️ 注意：这里使用 Worker URL
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -891,12 +893,19 @@ My master, Teacher Mehdi, is an experienced co-resident parent in the Philippine
 
                 if (!response.ok) {
                     apiError = true;
-                    const errorJson = await response.json();
-                    const errorMessage = errorJson.error?.message || response.statusText;
+                    // 尝试解析 Worker 返回的错误信息
+                    let errorMessage = response.statusText;
+                    try {
+                        const errorText = await response.text();
+                        errorMessage = errorText; 
+                    } catch (e) {
+                        // 忽略解析错误
+                    }
+                    
                     modelReplyText = lang === 'en' 
-                        ? `API Request Failed (Status ${response.status}). Error: ${errorMessage}`
-                        : `API请求失败 (状态码 ${response.status})。错误信息: ${errorMessage}。请尝试重置对话或稍后再试。`;
-                    console.error('API Error:', errorJson); 
+                        ? `AI Request Failed (Status ${response.status}). Error: ${errorMessage}. Please try resetting the chat.`
+                        : `AI请求失败 (状态码 ${response.status})。错误信息: ${errorMessage}。请尝试重置对话或稍后再试。`;
+                    console.error('API Error:', errorMessage); 
                 } else {
                     const result = await response.json();
                     
@@ -935,8 +944,8 @@ My master, Teacher Mehdi, is an experienced co-resident parent in the Philippine
                 apiError = true;
                 console.error("Critical error in sendMessage:", error);
                 modelReplyText = lang === 'en' 
-                    ? `A critical network error occurred: ${error.message}`
-                    : `发生致命网络错误：${error.message}。请检查您的网络连接或 API Key 是否正确。`;
+                    ? `A critical network error occurred: ${error.message}. Ensure the Cloudflare Worker URL is correct.`
+                    : `发生致命网络错误：${error.message}。请检查您的网络连接或 Cloudflare Worker URL 是否正确。`;
             }
             
             // C. 移除加载提示并显示最终回复

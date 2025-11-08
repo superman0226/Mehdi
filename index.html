@@ -8,19 +8,8 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#1070ff', // 小强的主题色：蓝色
-                        accent: '#10b981',  // 强调色：绿色
-                    }
-                }
-            }
-        }
-    </script>
+    <link href="dist/output.css" rel="stylesheet"> 
+    
     <style>
         /* 加载点的动画 */
         .loading-dot {
@@ -204,7 +193,7 @@
         // 使用最新的稳定模型
         const modelName = 'gemini-2.5-flash'; 
 
-        // 🚀 修复：使用 Cloudflare Worker 代理链接 (不包含 API Key)
+        // 🚀 配置：Cloudflare Worker 代理链接 (已修复 CORS 和 Key 泄露问题)
         const apiUrl = 'https://gemini-proxy-xiaoqiang.superman0226.workers.dev/'; 
         
         let chatHistory = []; 

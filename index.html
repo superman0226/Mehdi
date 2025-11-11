@@ -866,18 +866,18 @@ My master, Teacher Mehdi, is an experienced co-resident parent in the Philippine
                 finalSystemPrompt = baseSystemPrompt;
             }
             
-            // 3. 构建 PAYLOAD (使用 finalSystemPrompt)
-            const payload = {
-                contents: limitedHistory, 
-                // 使用下划线命名法的 Content 对象结构
-                system_instruction: {
-                    parts: [
-                        {
-                            text: finalSystemPrompt
-                        }
-                    ]
-                }
-            };
+// ... (在 sendMessage 函数内)
+
+// ⚠️ 修复：将 system_instruction 替换为 generationConfig 结构
+const payload = {
+    contents: limitedHistory, 
+    // 使用 generationConfig，并将 systemInstruction 放在其下
+    // 如果 Worker 端要处理，这是推荐的结构
+    generationConfig: {
+        systemInstruction: finalSystemPrompt
+    }
+};
+
             
             let modelReplyText = lang === 'en' ? "Sorry, the system is experiencing a temporary issue." : "抱歉，系统暂时出了点小问题。";
             let recommendedArticle = null;

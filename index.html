@@ -869,14 +869,26 @@ My master, Teacher Mehdi, is an experienced co-resident parent in the Philippine
 // ... (在 sendMessage 函数内)
 
 // ⚠️ 修复：将 system_instruction 替换为 generationConfig 结构
+// 最终正确的 REST API V1/V1Beta 顶级结构
 const payload = {
     contents: limitedHistory, 
-    // 使用 generationConfig，并将 systemInstruction 放在其下
-    // 如果 Worker 端要处理，这是推荐的结构
+    // 🚀 修复：将 systemInstruction 提升为顶级字段，并删除 generationConfig 的错误嵌套
+    systemInstruction: finalSystemPrompt 
+};
+
+// 如果您将来需要设置 temperature, maxOutputTokens 等参数，
+// 您可以添加 generationConfig 字段，但 systemInstruction 必须保持顶级。
+/*
+const payload = {
+    contents: limitedHistory, 
+    systemInstruction: finalSystemPrompt,
     generationConfig: {
-        systemInstruction: finalSystemPrompt
+         temperature: 0.8,
+         maxOutputTokens: 2048,
     }
 };
+*/
+
 
             
             let modelReplyText = lang === 'en' ? "Sorry, the system is experiencing a temporary issue." : "抱歉，系统暂时出了点小问题。";
